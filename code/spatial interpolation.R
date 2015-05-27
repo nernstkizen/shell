@@ -1,0 +1,159 @@
+setwd("Z:/project/code")
+source('header.R')
+source("loadData.R")
+
+
+setwd(file.path(repo_path, "/data"))
+
+
+#================================================================================================================================
+# Universal Kriging Approach ###
+#================================================================================================================================
+
+##@Kriging using mean as aggregate method
+
+##Aggregate data
+
+sumnewdata1<-summarise(newdata1,Tmax=mean(Tmax,na.rm=TRUE),S2=mean(S2,na.rm=TRUE),Romeasure=mean(Romeasure,na.rm=TRUE))
+#sumnewdata1<-filter(sumnewdata1,!is.na(Tmax))
+
+sumnewdata3<-summarise(newdata3,ClayChlo=mean(ClayChlo,na.rm=TRUE),waterporosity=mean(waterporosity,na.rm=TRUE))
+#sumnewdata3<-filter(sumnewdata1,!is.na(Tmax))
+
+
+##Variogram check
+
+#lookb=variog(coords=sumnewdata1[,2:3],data=sumnewdata1$Tmax)
+#lookc=variog(coords=sumnewdata1[,2:3],data=sumnewdata1$Tmax,op='cloud')
+#lookbc=variog(coords=sumnewdata1[,2:3],data=sumnewdata1$Tmax,bin.cloud=TRUE)
+#looks=variog(coords=sumnewdata1[,2:3],data=sumnewdata1$Tmax,op='sm',band=1)
+
+#par(mfrow=c(2,2))
+#plot(lookb, main="binned variogram") 
+#plot(lookc, main="variogram cloud")
+#plot(lookbc, bin.cloud=TRUE, main="clouds for binned variogram")  
+#plot(looks, main="smoothed variogram") 
+
+#look4=variog4(coords=sumnewdata1[,2:3],data=sumnewdata1$Tmax)
+
+
+##Kriging for Five variables
+
+
+KrigTmax<-Krig(x=sumnewdata1[,2:3], Y=sumnewdata1$Tmax)
+KrigS2<-Krig(x=sumnewdata1[,2:3], Y=sumnewdata1$S2)
+KrigRomeasure<-Krig(x=sumnewdata1[,2:3], Y=sumnewdata1$Romeasure)
+KrigClayChlo<-Krig(x=sumnewdata3[,2:3], Y=sumnewdata3$ClayChlo)
+Krigwaterporosity<-Krig(x=sumnewdata3[,2:3], Y=sumnewdata3$waterporosity)
+
+
+
+##Prediction for production well
+
+predic.Tmax<-predict(KrigTmax,as.matrix(abc[,3:4]))
+predic.S2<-predict(KrigS2,as.matrix(abc[,3:4]))
+predic.Romeasure<-predict(KrigRomeasure,as.matrix(abc[,3:4]))
+predic.ClayChlo<-predict(KrigClayChlo,as.matrix(abc[,3:4]))
+predic.waterporosity<-predict(Krigwaterporosity,as.matrix(abc[,3:4]))
+
+newabc<-cbind(abc,Tmax=predic.Tmax,S2=predic.S2,Romeasure=predic.Romeasure,ClayChlo=predic.ClayChlo,waterporosity=predic.waterporosity)
+
+write.csv(newabc,file='Interpolation for top five variables for production well(no truncation).csv')
+
+
+
+##@Kriging using trimmed mean (10%) as aggregate method
+
+##Aggregate data
+
+Trunsumnewdata1<-summarise(newdata1,Tmax=mean(Tmax,na.rm=TRUE,trim=0.1),S2=mean(S2,na.rm=TRUE,trim=0.1),Romeasure=mean(Romeasure,na.rm=TRUE,trim=0.1))
+#Trunsumnewdata1<-filter(Trunsumnewdata1,!is.na(Tmax))
+
+Trunsumnewdata3<-summarise(newdata3,ClayChlo=mean(ClayChlo,na.rm=TRUE,trim=0.1),waterporosity=mean(waterporosity,na.rm=TRUE,trim=0.1))
+#Trunsumnewdata3<-filter(Trunsumnewdata1,!is.na(Tmax))
+
+
+##Kriging for Five variables
+
+
+TrunKrigTmax<-Krig(x=Trunsumnewdata1[,2:3], Y=Trunsumnewdata1$Tmax)
+TrunKrigS2<-Krig(x=Trunsumnewdata1[,2:3], Y=Trunsumnewdata1$S2)
+TrunKrigRomeasure<-Krig(x=Trunsumnewdata1[,2:3], Y=Trunsumnewdata1$Romeasure)
+TrunKrigClayChlo<-Krig(x=Trunsumnewdata3[,2:3], Y=Trunsumnewdata3$ClayChlo)
+TrunKrigwaterporosity<-Krig(x=Trunsumnewdata3[,2:3], Y=Trunsumnewdata3$waterporosity)
+
+
+
+##Predict for production well
+
+
+Trunpredic.Tmax<-predict(TrunKrigTmax,as.matrix(abc[,3:4]))
+Trunpredic.S2<-predict(TrunKrigS2,as.matrix(abc[,3:4]))
+Trunpredic.Romeasure<-predict(TrunKrigRomeasure,as.matrix(abc[,3:4]))
+Trunpredic.ClayChlo<-predict(TrunKrigClayChlo,as.matrix(abc[,3:4]))
+Trunpredic.waterporosity<-predict(TrunKrigwaterporosity,as.matrix(abc[,3:4]))
+
+Trunnewabc<-cbind(abc,Tmax=Trunpredic.Tmax,S2=Trunpredic.S2,Romeasure=Trunpredic.Romeasure,ClayChlo=Trunpredic.ClayChlo,waterporosity=Trunpredic.waterporosity)
+
+
+
+write.csv(Trunnewabc,file='Interpolation for top five variables for production well(10% truncation).csv')
+
+
+
+
+##@Kriging using mean calcaulated without outliers as aggregate method
+
+
+##Define a function to calculate mean without outliers
+normal_mean <- function(x) {
+  qnt <- quantile(x, probs=c(.25, .75),na.rm=TRUE)
+  H <- 1.5 * IQR(x,na.rm=TRUE)
+  y <- x
+  y[x < (qnt[1] - H)] <- NA
+  y[x > (qnt[2] + H)] <- NA
+  return(mean(y,na.rm=TRUE))
+}
+
+##Aggregate data
+
+Norsumnewdata1<-summarise(newdata1,Tmax=normal_mean(Tmax),S2=normal_mean(S2),Romeasure=normal_mean(Romeasure))
+#Norsumnewdata1<-filter(Norsumnewdata1,!is.na(Tmax))
+
+Norsumnewdata3<-summarise(newdata3,ClayChlo=normal_mean(ClayChlo),waterporosity=normal_mean(waterporosity))
+#Norsumnewdata3<-filter(Norsumnewdata1,!is.na(Tmax))
+
+
+#Kriging for Five variables
+
+
+NorKrigTmax<-Krig(x=Norsumnewdata1[,2:3], Y=Norsumnewdata1$Tmax)
+NorKrigS2<-Krig(x=Norsumnewdata1[,2:3], Y=Norsumnewdata1$S2)
+NorKrigRomeasure<-Krig(x=Norsumnewdata1[,2:3], Y=Norsumnewdata1$Romeasure)
+NorKrigClayChlo<-Krig(x=Norsumnewdata3[,2:3], Y=Norsumnewdata3$ClayChlo)
+NorKrigwaterporosity<-Krig(x=Norsumnewdata3[,2:3], Y=Norsumnewdata3$waterporosity)
+
+
+
+##Predict for production well
+
+
+Norpredic.Tmax<-predict(NorKrigTmax,as.matrix(abc[,3:4]))
+Norpredic.S2<-predict(NorKrigS2,as.matrix(abc[,3:4]))
+Norpredic.Romeasure<-predict(NorKrigRomeasure,as.matrix(abc[,3:4]))
+Norpredic.ClayChlo<-predict(NorKrigClayChlo,as.matrix(abc[,3:4]))
+Norpredic.waterporosity<-predict(NorKrigwaterporosity,as.matrix(abc[,3:4]))
+
+Nornewabc<-cbind(abc,Tmax=Norpredic.Tmax,S2=Norpredic.S2,Romeasure=Norpredic.Romeasure,ClayChlo=Norpredic.ClayChlo,waterporosity=Norpredic.waterporosity)
+
+write.csv(Nornewabc,file='Interpolation for top five variables for production well(outlier removed).csv')
+
+
+
+
+
+
+
+
+
+
