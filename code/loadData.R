@@ -74,7 +74,7 @@ abc<-abc[,-5]
 setwd(file.path(repo_path, "/data/Kaggle/Final/RulesBasedApproach Oct 8/RulesBasedApproach Oct 8"))
 y <- read.csv("Rules features using recent and Jan 2014 data.csv")
 y <- select(y,Uwi)  # 2631 x 1
-abc<-inner_join(abc,y,by='Uwi')
+abc <- inner_join(abc,y,by='Uwi')
 
 
 
