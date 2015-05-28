@@ -77,11 +77,7 @@ y <- select(y,Uwi)  # 2631 x 1
 abc <- inner_join(abc,y,by='Uwi')
 
 
-
-
-
-
-
+#@@Test Data for drawing kriging heatmap
 
 
 

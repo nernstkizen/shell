@@ -60,6 +60,45 @@ newabc<-cbind(abc,Tmax=predic.Tmax,S2=predic.S2,Romeasure=predic.Romeasure,ClayC
 
 write.csv(newabc,file='Interpolation for top five variables for production well(no truncation).csv')
 
+##ggplot2
+
+test<-cbind(testdata,Tmax=predict(KrigTmax,testdata),S2=predict(KrigS2,testdata),Romeasure=predict(KrigRomeasure,testdata),
+               ClayChlo<-predict(KrigClayChlo,testdata),waterporosity<-predict(Krigwaterporosity,testdata))
+test<-as.data.frame(test)
+names(test)<-c("Latitude","Longitude","Tmax","S2","Romeasure","ClayChlo","waterporosity")
+
+
+pTmax<-ggplot(data=test,aes(x=Longitude,y=Latitude,z=Tmax))+geom_tile(aes(fill = Tmax)) + scale_fill_gradient(low = "white", high = "red")+
+  stat_contour(size=1,aes(colour=..level..))
+direct.label(pTmax)
+
+
+pS2<-ggplot(data=test,aes(x=Longitude,y=Latitude,z=S2))+geom_tile(aes(fill = S2)) + scale_fill_gradient(low = "white", high = "red")+
+  stat_contour(size=1,aes(colour=..level..))
+
+direct.label(pS2)
+
+pRomeasure<-ggplot(data=test,aes(x=Longitude,y=Latitude,z=Romeasure))+geom_tile(aes(fill = Romeasure)) + scale_fill_gradient(low = "white", high = "red")+
+  stat_contour(size=1,aes(colour=..level..))
+
+direct.label(pRomeasure)
+
+pClayChlo<-ggplot(data=test,aes(x=Longitude,y=Latitude,z=ClayChlo))+geom_tile(aes(fill = ClayChlo)) + scale_fill_gradient(low = "white", high = "red")+
+  stat_contour(size=1,aes(colour=..level..))
+
+direct.label(pClayChlo)
+
+pwaterporosity<-ggplot(data=test,aes(x=Longitude,y=Latitude,z=waterporosity))+geom_tile(aes(fill = waterporosity)) + scale_fill_gradient(low = "white", high = "red")+
+  stat_contour(size=1,aes(colour=..level..))
+
+direct.label(pwaterporosity)
+
+
+
+
+
+
+
 
 
 ##@Kriging using trimmed mean (10%) as aggregate method
@@ -99,6 +138,45 @@ Trunnewabc<-cbind(abc,Tmax=Trunpredic.Tmax,S2=Trunpredic.S2,Romeasure=Trunpredic
 
 write.csv(Trunnewabc,file='Interpolation for top five variables for production well(10% truncation).csv')
 
+##ggplot2
+
+Truntest<-cbind(testdata,Tmax=predict(TrunKrigTmax,testdata),S2=predict(TrunKrigS2,testdata),Romeasure=predict(TrunKrigRomeasure,testdata),
+               ClayChlo<-predict(TrunKrigClayChlo,testdata),waterporosity<-predict(TrunKrigwaterporosity,testdata))
+Truntest<-as.data.frame(Truntest)
+names(Truntest)<-c("Latitude","Longitude","Tmax","S2","Romeasure","ClayChlo","waterporosity")
+
+
+TrunpTmax<-ggplot(data=Truntest,aes(x=Longitude,y=Latitude,z=Tmax))+geom_tile(aes(fill = Tmax)) + scale_fill_gradient(low = "white", high = "red")+
+  stat_contour(size=1,aes(colour=..level..))
+direct.label(TrunpTmax)
+
+
+TrunpS2<-ggplot(data=Truntest,aes(x=Longitude,y=Latitude,z=S2))+geom_tile(aes(fill = S2)) + scale_fill_gradient(low = "white", high = "red")+
+  stat_contour(size=1,aes(colour=..level..))
+
+direct.label(TrunpS2)
+
+TrunpRomeasure<-ggplot(data=Truntest,aes(x=Longitude,y=Latitude,z=Romeasure))+geom_tile(aes(fill = Romeasure)) + scale_fill_gradient(low = "white", high = "red")+
+  stat_contour(size=1,aes(colour=..level..))
+
+direct.label(TrunpRomeasure)
+
+TrunpClayChlo<-ggplot(data=Truntest,aes(x=Longitude,y=Latitude,z=ClayChlo))+geom_tile(aes(fill = ClayChlo)) + scale_fill_gradient(low = "white", high = "red")+
+  stat_contour(size=1,aes(colour=..level..))
+
+direct.label(TrunpClayChlo)
+
+Trunpwaterporosity<-ggplot(data=Truntest,aes(x=Longitude,y=Latitude,z=waterporosity))+geom_tile(aes(fill = waterporosity)) + scale_fill_gradient(low = "white", high = "red")+
+  stat_contour(size=1,aes(colour=..level..))
+
+direct.label(Trunpwaterporosity)
+
+
+
+
+
+
+
 
 
 
@@ -106,7 +184,7 @@ write.csv(Trunnewabc,file='Interpolation for top five variables for production w
 
 
 ##Define a function to calculate mean without outliers
-normal_mean <- function(x) {
+Normal_mean <- function(x) {
   qnt <- quantile(x, probs=c(.25, .75),na.rm=TRUE)
   H <- 1.5 * IQR(x,na.rm=TRUE)
   y <- x
@@ -117,10 +195,10 @@ normal_mean <- function(x) {
 
 ##Aggregate data
 
-Norsumnewdata1<-summarise(newdata1,Tmax=normal_mean(Tmax),S2=normal_mean(S2),Romeasure=normal_mean(Romeasure))
+Norsumnewdata1<-summarise(newdata1,Tmax=Normal_mean(Tmax),S2=Normal_mean(S2),Romeasure=Normal_mean(Romeasure))
 #Norsumnewdata1<-filter(Norsumnewdata1,!is.na(Tmax))
 
-Norsumnewdata3<-summarise(newdata3,ClayChlo=normal_mean(ClayChlo),waterporosity=normal_mean(waterporosity))
+Norsumnewdata3<-summarise(newdata3,ClayChlo=Normal_mean(ClayChlo),waterporosity=Normal_mean(waterporosity))
 #Norsumnewdata3<-filter(Norsumnewdata1,!is.na(Tmax))
 
 
@@ -149,6 +227,41 @@ Nornewabc<-cbind(abc,Tmax=Norpredic.Tmax,S2=Norpredic.S2,Romeasure=Norpredic.Rom
 write.csv(Nornewabc,file='Interpolation for top five variables for production well(outlier removed).csv')
 
 
+
+
+
+##ggplot2
+
+Nortest<-cbind(testdata,Tmax=predict(NorKrigTmax,testdata),S2=predict(NorKrigS2,testdata),Romeasure=predict(NorKrigRomeasure,testdata),
+            ClayChlo<-predict(NorKrigClayChlo,testdata),waterporosity<-predict(NorKrigwaterporosity,testdata))
+Nortest<-as.data.frame(Nortest)
+names(Nortest)<-c("Latitude","Longitude","Tmax","S2","Romeasure","ClayChlo","waterporosity")
+
+
+NorpTmax<-ggplot(data=Nortest,aes(x=Longitude,y=Latitude,z=Tmax))+geom_tile(aes(fill = Tmax)) + scale_fill_gradient(low = "white", high = "red")+
+  stat_contour(size=1,aes(colour=..level..))
+direct.label(NorpTmax)
+
+
+NorpS2<-ggplot(data=Nortest,aes(x=Longitude,y=Latitude,z=S2))+geom_tile(aes(fill = S2)) + scale_fill_gradient(low = "white", high = "red")+
+  stat_contour(size=1,aes(colour=..level..))
+
+direct.label(NorpS2)
+
+NorpRomeasure<-ggplot(data=Nortest,aes(x=Longitude,y=Latitude,z=Romeasure))+geom_tile(aes(fill = Romeasure)) + scale_fill_gradient(low = "white", high = "red")+
+  stat_contour(size=1,aes(colour=..level..))
+
+direct.label(NorpRomeasure)
+
+NorpClayChlo<-ggplot(data=Nortest,aes(x=Longitude,y=Latitude,z=ClayChlo))+geom_tile(aes(fill = ClayChlo)) + scale_fill_gradient(low = "white", high = "red")+
+  stat_contour(size=1,aes(colour=..level..))
+
+direct.label(NorpClayChlo)
+
+Norpwaterporosity<-ggplot(data=Nortest,aes(x=Longitude,y=Latitude,z=waterporosity))+geom_tile(aes(fill = waterporosity)) + scale_fill_gradient(low = "white", high = "red")+
+  stat_contour(size=1,aes(colour=..level..))
+
+direct.label(Norpwaterporosity)
 
 
 

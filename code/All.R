@@ -224,3 +224,8 @@ write.csv(Nornewabc,file='Interpolation for top five variables for production we
 
 
 
+
+
+
+
+

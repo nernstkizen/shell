@@ -17,9 +17,9 @@ options(java.parameters = "-Xmx1g")
 #---------------------------------------------------------------------------------------------------------------------
 library(ggplot2)
 library(dplyr)
-library(kriging)
 library(geoR)
 library(fields)
+library(directlabels)
 
 
 
