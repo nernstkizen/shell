@@ -10,28 +10,6 @@ setwd(file.path(repo_path, "/data"))
 #---------------------------------------------------------------------------------------------------------------------
 ### Load data
 #---------------------------------------------------------------------------------------------------------------------
-#@@corewell GeoChem
-data1<-read.csv('031_Core_GeoChem.csv',header=TRUE,as.is=TRUE)
-data1<-data1[-1,]
-
-newdata1<-select(data1,UWI=Unique.Private.Well.ID, latitude=Well.Latitude, longitude=Well.Longitude
-                 ,Tmax=Tmax..degrees.C., S2=Hydrocarbon...S2..mg.g., Romeasure=Ro.Measured..percent.)
-newdata1<-arrange(newdata1,UWI)
-#newdata1[, 2:6] <- lapply(newdata[,2:6], as.numeric)
-newdata1[,2]<-as.numeric(newdata1[,2])
-newdata1[,3]<-as.numeric(newdata1[,3])
-newdata1[,4]<-as.numeric(newdata1[,4])
-newdata1[,5]<-as.numeric(newdata1[,5])
-newdata1[,6]<-as.numeric(newdata1[,6])
-newdata1<-group_by(newdata1,UWI,latitude,longitude)
-
-
-
-#@@corewell RCA
-#data2<-read.csv('032_Core_RCA.csv',header=TRUE)
-
-
-
 #@@corewell ShaleGas
 data3<-read.csv('033_Core_ShaleGas.csv',header=TRUE,as.is=TRUE)
 data3<-data3[-1,]
@@ -39,18 +17,56 @@ data3<-data3[-1,]
 
 
 newdata3<-select(data3,UWI=Unique.Private.Well.ID, latitude=Well.Latitude, longitude=Well.Longitude,
-                 ClayChlo=XRD.Clay.Fraction.Chlorite..weight.percent.,
-                 waterporosity=GRI.Water.Filled.Porosity..percent.)
+                 S2=Hydrocarbon...S2..mg.g., 
+                 Tmax=Tmax..degrees.C., 
+                 XrdClayChlorite=XRD.Clay.Fraction.Chlorite..weight.percent., 
+                 Romeasured=Ro.Measured..percent.,
+                 GriWaterFilledPorosity=GRI.Water.Filled.Porosity..percent.,
+                 XrdClaylllite=XRD.Clay.Fraction.Illite..weight.percent.,
+                 GscCombustibleGasContent=GSC.Combustible.Gas.Content,
+                 S3=CO2...S3..mg.g.,
+                 GriSaturationSo=GRI.Saturations...So..percent.Vp.,
+                 XrdClayKaolinite=XRD.Clay.Fraction.Kaolinite..weight.percent.,
+                 Toc=Leco.TOC..wt.percent.,
+                 S1=Hydrocarbon...S1..mg.g.,
+                 GriSaturationSg=GRI.Saturations...Sg..percent.,
+                 NormalizedOil=Normalized.Oil.Content,
+                 GriGrainDensity=GRI.Grain.Density..gm.cm.3.,
+                 XrdDolomite=XRD.Bulk.Rock.Dolomite..weight.percent.,
+                 CsgThoriumApi=CSG...Thorium..API.Units.,
+                 XrdPlagioclase=XRD.Bulk.Rock.Plagioclase..weight.percent.,
+                 StaticYoungsModulus=Static.Youngs.Modulus..10.6.psi.,
+                 GriTotalPorosity=GRI.Total.Porosity..percent.,
+                 GriGasFilledPorosity=GRI.Gas.Filled.Porosity..percent.,
+                 GriBulkDensity=GRI.Bulk.Density..gm.cm.3.,
+                 GriTypeParameter=GRI.Corey.Type.Parameter,
+                 XrdMarcasite=XRD.Bulk.Rock.Marcasite..weight.percent.,
+                 GriMatrixPermeabilityAbsolute=GRI.Matrix.Permeability...Absolute..md.
+                 )
 newdata3<-arrange(newdata3,UWI)
-newdata3[,2]<-as.numeric(newdata3[,2])
-newdata3[,3]<-as.numeric(newdata3[,3])
-newdata3[,4]<-as.numeric(newdata3[,4])
-newdata3[,5]<-as.numeric(newdata3[,5])
+newdata3[,2:28]<-sapply(newdata3[,2:28],FUN=as.numeric)
 newdata3<-group_by(newdata3,UWI,latitude,longitude)
 
 
 #@@corewell SCAL
-#data4<-read.csv('034_Core_SCAL.csv',header=TRUE)
+data4<-read.csv('034_Core_SCAL.csv',header=TRUE,as.is=TRUE)
+data4<-data4[-1,]
+newdata4<-select(data4,UWI=Unique.Private.Well.ID, latitude=Well.Latitude, longitude=Well.Longitude,
+                 ConfiningStressDynamic=Confining.Stress...Dynamic,
+                 PoissonRatioDynamic=Poisson.s.Ratio...Dynamic,
+                 BulkDensityDynamic=Bulk.Density...Dynamic,
+                 ShearVelocityDynamic=Shear.Velocity...Dynamic
+)
+newdata4<-arrange(newdata4,UWI)
+newdata4[,2:7]<-sapply(newdata4[,2:7],FUN=as.numeric)
+newdata4<-group_by(newdata4,UWI,latitude,longitude)
+
+
+
+
+
+
+
 
 
 #@@Production well location + Prod start time + true depth
@@ -77,7 +93,6 @@ y <- select(y,Uwi)  # 2631 x 1
 abc <- inner_join(abc,y,by='Uwi')
 
 
-#@@Test Data for drawing kriging heatmap
 
 
 

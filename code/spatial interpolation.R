@@ -14,19 +14,58 @@ setwd(file.path(repo_path, "/data"))
 
 ##Aggregate data
 
-sumnewdata1<-summarise(newdata1,Tmax=mean(Tmax,na.rm=TRUE),S2=mean(S2,na.rm=TRUE),Romeasure=mean(Romeasure,na.rm=TRUE))
-#sumnewdata1<-filter(sumnewdata1,!is.na(Tmax))
 
-sumnewdata3<-summarise(newdata3,ClayChlo=mean(ClayChlo,na.rm=TRUE),waterporosity=mean(waterporosity,na.rm=TRUE))
-#sumnewdata3<-filter(sumnewdata1,!is.na(Tmax))
+
+sumnewdata3<-summarise(newdata3,
+                       S2=mean(S2,na.rm=TRUE),
+                       Tmax=mean(Tmax,na.rm=TRUE),
+                       XrdClayChlorite=mean(XrdClayChlorite,na.rm=TRUE),
+                       Romeasured=mean(Romeasured,na.rm=TRUE),
+                       GriWaterFilledPorosity=mean(GriWaterFilledPorosity,na.rm=TRUE),
+                       XrdClaylllite=mean(XrdClaylllite,na.rm=TRUE),
+                       GscCombustibleGasContent=mean(GscCombustibleGasContent,na.rm=TRUE),
+                       S3=mean(S3,na.rm=TRUE),
+                       GriSaturationSo=mean(GriSaturationSo,na.rm=TRUE),
+                       XrdClayKaolinite=mean(XrdClayKaolinite,na.rm=TRUE),
+                       Toc=mean(Toc,na.rm=TRUE),
+                       S1=mean(S1,na.rm=TRUE),
+                       GriSaturationSg=mean(GriSaturationSg,na.rm=TRUE),
+                       NormalizedOil=mean(NormalizedOil,na.rm=TRUE),
+                       GriGrainDensity=mean(GriGrainDensity,na.rm=TRUE),
+                       XrdDolomite=mean(XrdDolomite,na.rm=TRUE),
+                       CsgThoriumApi=mean(CsgThoriumApi,na.rm=TRUE),
+                       XrdPlagioclase=mean(XrdPlagioclase,na.rm=TRUE),
+                       StaticYoungsModulus=mean(StaticYoungsModulus,na.rm=TRUE),
+                       GriTotalPorosity=mean(GriTotalPorosity,na.rm=TRUE),
+                       GriGasFilledPorosity=mean(GriGasFilledPorosity,na.rm=TRUE),
+                       GriBulkDensity=mean(GriBulkDensity,na.rm=TRUE),
+                       GriTypeParameter=mean(GriTypeParameter,na.rm=TRUE),
+                       XrdMarcasite=mean(XrdMarcasite,na.rm=TRUE),
+                       GriMatrixPermeabilityAbsolute=mean(GriMatrixPermeabilityAbsolute,na.rm=TRUE))
+
+
+
+
+
+
+sumnewdata4<-summarise(newdata4,
+                       ConfiningStressDynamic=mean(ConfiningStressDynamic,na.rm=TRUE),
+                       PoissonRatioDynamic=mean(PoissonRatioDynamic,na.rm=TRUE),
+                       BulkDensityDynamic=mean( BulkDensityDynamic,na.rm=TRUE),
+                       ShearVelocityDynamic=mean(ShearVelocityDynamic,na.rm=TRUE))
+
+
+sumnewdata<-full_join(sumnewdata3,sumnewdata4,by=c('UWI','latitude','longitude'))
+
+
 
 
 ##Variogram check
 
-#lookb=variog(coords=sumnewdata1[,2:3],data=sumnewdata1$Tmax)
-#lookc=variog(coords=sumnewdata1[,2:3],data=sumnewdata1$Tmax,op='cloud')
-#lookbc=variog(coords=sumnewdata1[,2:3],data=sumnewdata1$Tmax,bin.cloud=TRUE)
-#looks=variog(coords=sumnewdata1[,2:3],data=sumnewdata1$Tmax,op='sm',band=1)
+#lookb=variog(coords=sumnewdata[,2:3],data=sumnewdata$Tmax)
+#lookc=variog(coords=sumnewdata[,2:3],data=sumnewdata$Tmax,op='cloud')
+#lookbc=variog(coords=sumnewdata[,2:3],data=sumnewdata$Tmax,bin.cloud=TRUE)
+#looks=variog(coords=sumnewdata[,2:3],data=sumnewdata$Tmax,op='sm',band=1)
 
 #par(mfrow=c(2,2))
 #plot(lookb, main="binned variogram") 
@@ -34,71 +73,92 @@ sumnewdata3<-summarise(newdata3,ClayChlo=mean(ClayChlo,na.rm=TRUE),waterporosity
 #plot(lookbc, bin.cloud=TRUE, main="clouds for binned variogram")  
 #plot(looks, main="smoothed variogram") 
 
-#look4=variog4(coords=sumnewdata1[,2:3],data=sumnewdata1$Tmax)
+#look4=variog4(coords=sumnewdata[,2:3],data=sumnewdata$Tmax)
 
 
-##Kriging for Five variables
+##Kriging for 29 variables
 
 
-KrigTmax<-Krig(x=sumnewdata1[,2:3], Y=sumnewdata1$Tmax)
-KrigS2<-Krig(x=sumnewdata1[,2:3], Y=sumnewdata1$S2)
-KrigRomeasure<-Krig(x=sumnewdata1[,2:3], Y=sumnewdata1$Romeasure)
-KrigClayChlo<-Krig(x=sumnewdata3[,2:3], Y=sumnewdata3$ClayChlo)
-Krigwaterporosity<-Krig(x=sumnewdata3[,2:3], Y=sumnewdata3$waterporosity)
-
+for (i in 1:29)
+{
+varr<-names(sumnewdata)[i+3]  
+goodname<-paste('Krig',varr,sep='')  
+assign(goodname,Krig(x=sumnewdata[,2:3], Y=sumnewdata[,i+3]))
+}
 
 
 ##Prediction for production well
 
-predic.Tmax<-predict(KrigTmax,as.matrix(abc[,3:4]))
-predic.S2<-predict(KrigS2,as.matrix(abc[,3:4]))
-predic.Romeasure<-predict(KrigRomeasure,as.matrix(abc[,3:4]))
-predic.ClayChlo<-predict(KrigClayChlo,as.matrix(abc[,3:4]))
-predic.waterporosity<-predict(Krigwaterporosity,as.matrix(abc[,3:4]))
+for (i in 1:29)
+{
+varr<-names(sumnewdata)[i+3]
+prename<-paste('Krig',varr,sep='') 
+goodname<-paste("predic",varr,sep='.')
+assign(goodname,predict(get(prename),as.matrix(abc[,3:4])))
+}
 
-newabc<-cbind(abc,Tmax=predic.Tmax,S2=predic.S2,Romeasure=predic.Romeasure,ClayChlo=predic.ClayChlo,waterporosity=predic.waterporosity)
 
-write.csv(newabc,file='Interpolation for top five variables for production well(no truncation).csv')
+
+newabc<-abc
+for (i in 1:29)
+{
+  varr<-names(sumnewdata)[i+3]
+  prename<-paste('Krig',varr,sep='') 
+  newabc<-cbind(newabc,predict(get(prename),as.matrix(abc[,3:4])))
+  names(newabc)[i+5]<-varr
+}
+
+write.csv(newabc,file='Interpolation for top 29 variables for production well(no truncation).csv')
+
+
+
+
 
 ##ggplot2
 
-test<-cbind(testdata,Tmax=predict(KrigTmax,testdata),S2=predict(KrigS2,testdata),Romeasure=predict(KrigRomeasure,testdata),
-               ClayChlo<-predict(KrigClayChlo,testdata),waterporosity<-predict(Krigwaterporosity,testdata))
-test<-as.data.frame(test)
-names(test)<-c("Latitude","Longitude","Tmax","S2","Romeasure","ClayChlo","waterporosity")
+#@@Test Data for drawing kriging heatmap
+testdata<-matrix(0,14400,2)
+testdata[,1]<-rep(seq(from=27,to=32,length=120),each=120)
+testdata[,2]<-rep(seq(from=-101,to=-96,length=120),120)
+
+test<-as.data.frame(testdata)
+
+for (i in 1:29)
+{
+  varr<-names(sumnewdata)[i+3]
+  prename<-paste('Krig',varr,sep='') 
+  test<-cbind(test,predict(get(prename),testdata))
+  names(test)[i+2]<-varr  
+}
+
+names(test)[1:2]<-c("Latitude","Longitude")
 
 
-pTmax<-ggplot(data=test,aes(x=Longitude,y=Latitude,z=Tmax))+geom_tile(aes(fill = Tmax)) + scale_fill_gradient(low = "white", high = "red")+
-  stat_contour(size=1,aes(colour=..level..))
-direct.label(pTmax)
+op<-par(ask=TRUE)
+
+for (num in 1:29)
+
+{
+  varr<-names(test)[num+2]
+  p<-ggplot(data=test,aes(x=Longitude,y=Latitude,z=get(varr)))+geom_tile(aes(fill =get(varr)))+ 
+    scale_fill_gradient(low = "white", high = "red")+
+  stat_contour(size=1,aes(colour=..level..))+geom_point(data=sumnewdata,aes(x=longitude,y=latitude,colour=get(varr)),size=8)+ 
+  scale_colour_gradient(low = "white", high = "blue")+
+    ggtitle(varr)
+  
+  plot(p)
+  
+}
 
 
-pS2<-ggplot(data=test,aes(x=Longitude,y=Latitude,z=S2))+geom_tile(aes(fill = S2)) + scale_fill_gradient(low = "white", high = "red")+
-  stat_contour(size=1,aes(colour=..level..))
 
-direct.label(pS2)
-
-pRomeasure<-ggplot(data=test,aes(x=Longitude,y=Latitude,z=Romeasure))+geom_tile(aes(fill = Romeasure)) + scale_fill_gradient(low = "white", high = "red")+
-  stat_contour(size=1,aes(colour=..level..))
-
-direct.label(pRomeasure)
-
-pClayChlo<-ggplot(data=test,aes(x=Longitude,y=Latitude,z=ClayChlo))+geom_tile(aes(fill = ClayChlo)) + scale_fill_gradient(low = "white", high = "red")+
-  stat_contour(size=1,aes(colour=..level..))
-
-direct.label(pClayChlo)
-
-pwaterporosity<-ggplot(data=test,aes(x=Longitude,y=Latitude,z=waterporosity))+geom_tile(aes(fill = waterporosity)) + scale_fill_gradient(low = "white", high = "red")+
-  stat_contour(size=1,aes(colour=..level..))
-
-direct.label(pwaterporosity)
+par(op)
 
 
 
 
 
-
-
+NOTNEEDRIGNTNOW<-function{
 
 
 ##@Kriging using trimmed mean (10%) as aggregate method
@@ -263,6 +323,7 @@ Norpwaterporosity<-ggplot(data=Nortest,aes(x=Longitude,y=Latitude,z=waterporosit
 
 direct.label(Norpwaterporosity)
 
+}
 
 
 
