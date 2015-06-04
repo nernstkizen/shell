@@ -45,6 +45,11 @@ newdata3<-select(data3,UWI=Unique.Private.Well.ID, latitude=Well.Latitude, longi
                  )
 newdata3<-arrange(newdata3,UWI)
 newdata3[,2:28]<-sapply(newdata3[,2:28],FUN=as.numeric)
+
+for (i in c(6,13,20))
+{
+  newdata3[,i][newdata3[,i]<0&!is.na(newdata3[,i])] <- NA
+}
 newdata3<-group_by(newdata3,UWI,latitude,longitude)
 
 
@@ -90,13 +95,31 @@ abc<-abc[,-5]
 setwd(file.path(repo_path, "/data/Kaggle/Final/RulesBasedApproach Oct 8/RulesBasedApproach Oct 8"))
 y <- read.csv("Rules features using recent and Jan 2014 data.csv")
 y1 <- select(y,Uwi)  # 2631 x 1
+
+
 abc <- inner_join(abc,y1,by='Uwi')
 
 
 
 
-
 y2 <- select(y,Uwi,Target,Rules.Prediction, Kaggle.Prediction) #2632*4
+
+
+
+
+####Kaggle Kriging of the 29 variables 
+setwd(file.path(repo_path, "data/Kaggle/Final/Documentation and Input Files September 22 2014/Documentation and Input Files"))
+
+x <- read.csv("EagleFordOilInput.csv")
+x <- distinct(x, Uwi)  # rm duplicate records (5222 x 35)
+x <- select(x, -Latitude, -Longitude, -Producer.EstimatedLength.Joined,-Core.RoCalculated.Kriged)
+x.vars <- names(x)
+x.vars <- x.vars[-1]  # rm Uwi (Uwi isn't a predictor)
+bbc <- inner_join(x, y1, by="Uwi")
+
+
+
+
 
 
 
