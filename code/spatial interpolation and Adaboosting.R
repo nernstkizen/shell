@@ -398,6 +398,11 @@ c(boost.error1,boost.error2,boost.error3,boost.error4,boost.error5,Tree.error,RF
 
 
 
+
+
+
+
+
 ##boosting
 
 runboostRegCV<- function(dat, no.tree, k)
@@ -410,7 +415,7 @@ runboostRegCV<- function(dat, no.tree, k)
     
     test  <- dat[folds$subsets[folds$which==i],]
     train <- dplyr::setdiff(dat, test)
-    model <- gbm(Target~., data=train[,5:35], n.trees=no.tree, shrinkage=0.01,distribution='gaussian')  
+    model <- gbm(Target~., data=train[,5:35], n.trees=no.tree, shrinkage=0.01,distribution='gaussian',interaction.depth=4)  
     
     #####################################################################################################
     
@@ -425,7 +430,7 @@ runboostRegCV<- function(dat, no.tree, k)
   return(list(sol, pred))
 }
 #@@ 5-fold CV
-set.seed(777)
+set.seed(666)
 boost1 <- runboostRegCV(dat=newabcY,  no.tree=1000, k=5)
 boost2 <- runboostRegCV(dat=newabcY,  no.tree=3000, k=5)
 boost3 <- runboostRegCV(dat=newabcY,  no.tree=6000, k=5)
@@ -464,7 +469,7 @@ runTreeRegCV<- function(dat, k)
   return(list(sol, pred))
 }
 #@@ 5-fold CV
-set.seed(777)
+set.seed(666)
 Tree <- runTreeRegCV(dat=newabcY, k=5)
 
 predTree <- Tree[[2]]
@@ -503,7 +508,7 @@ runRFRegCV <- function(dat, m, no.tree, k ,ntrace=500){
 }
 
 #@@ 5-fold CV 
-set.seed(777)
+set.seed(666)
 rf <- runRFRegCV(dat=newabcY,  m=12, no.tree=1000, k=5)
 predRF<- rf[[2]] 
 
@@ -545,13 +550,12 @@ qRecCurv <- function(x) {
 pred.boost<-select(predboost5,Uwi, Target,boost=Pred)
 pred.Tree <- select(predTree, Uwi, Tree=Pred)
 pred.RF<-select(predRF, Uwi, RF=Pred)
-pred.kaggle <- select(newbbcY, Uwi, Rules.Prediction, Kaggle.Prediction)
+
 
 
 
 jo <- left_join(pred.boost, pred.Tree, by="Uwi")
 jo <- left_join(jo, pred.RF,by='Uwi')
-jo <- left_join(jo, pred.kaggle, by="Uwi")
 jo <- jo[,-1]  # rm Uwi
 
 q.rec <- qRecCurv(jo) * 100
@@ -564,19 +568,17 @@ q.rec1 <- q.rec %>% select(True) %>% mutate(RecRate=True, Method="Baseline")
 q.rec2 <- q.rec %>% select(True, X2) %>% rename(RecRate=X2) %>% mutate(Method="boost")
 q.rec3 <- q.rec %>% select(True, X3) %>% rename(RecRate=X3) %>% mutate(Method="Tree")
 q.rec4 <- q.rec %>% select(True, X4) %>% rename(RecRate=X4) %>% mutate(Method="RandomForest")
-q.rec5 <- q.rec %>% select(True, X5) %>% rename(RecRate=X5) %>% mutate(Method="Rule Based")
-q.rec6 <- q.rec %>% select(True, X6) %>% rename(RecRate=X6) %>% mutate(Method="Kaggle")
+
 
 q.rec <- union(q.rec1, q.rec2)
 q.rec <- union(q.rec, q.rec3)
 q.rec <- union(q.rec, q.rec4)
-q.rec <- union(q.rec, q.rec5)
-q.rec <- union(q.rec, q.rec6)
+
 
 
 ggplot(q.rec, aes(x=True, y=RecRate, colour=Method, group=Method)) + 
   geom_line(lwd=1.2) +
-  scale_color_manual(values=c("#fe506e", "black", "#228b22", "#0099cc", "#e95d3c","blue")) +
+  scale_color_manual(values=c("#fe506e", "black", "#228b22", "#0099cc")) +
   xlab("Top Quantile Percentage") + ylab("Recover Rate") + 
   theme(#legend.position="none",
     axis.title.x = element_text(size=24),
@@ -708,7 +710,7 @@ runboostRegCV<- function(dat, no.tree, k)
     
     test  <- dat[folds$subsets[folds$which==i],]
     train <- dplyr::setdiff(dat, test)
-    model <- gbm(Target~., data=train[,2:32], n.trees=no.tree, shrinkage=0.01,distribution='gaussian')  
+    model <- gbm(Target~., data=train[,2:32], n.trees=no.tree, shrinkage=0.01,distribution='gaussian',interaction.depth=4)  
     
     #####################################################################################################
     
@@ -723,7 +725,7 @@ runboostRegCV<- function(dat, no.tree, k)
   return(list(sol, pred))
 }
 #@@ 5-fold CV
-set.seed(777)
+set.seed(666)
 boost1 <- runboostRegCV(dat=newbbcY,  no.tree=1000, k=5)
 boost2 <- runboostRegCV(dat=newbbcY,  no.tree=3000, k=5)
 boost3 <- runboostRegCV(dat=newbbcY,  no.tree=6000, k=5)
@@ -762,7 +764,7 @@ runTreeRegCV<- function(dat, k)
   return(list(sol, pred))
 }
 #@@ 5-fold CV
-set.seed(777)
+set.seed(666)
 Tree <- runTreeRegCV(dat=newbbcY, k=5)
 
 predTree <- Tree[[2]]
@@ -801,7 +803,7 @@ runRFRegCV <- function(dat, m, no.tree, k ,ntrace=500){
 }
 
 #@@ 5-fold CV 
-set.seed(777)
+set.seed(666)
 rf <- runRFRegCV(dat=newbbcY,  m=12, no.tree=1000, k=5)
 predRF<- rf[[2]] 
 
