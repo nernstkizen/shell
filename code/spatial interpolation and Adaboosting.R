@@ -401,8 +401,6 @@ c(boost.error1,boost.error2,boost.error3,boost.error4,boost.error5,Tree.error,RF
 
 
 
-
-
 ##boosting
 
 runboostRegCV<- function(dat, no.tree, k)
@@ -430,7 +428,7 @@ runboostRegCV<- function(dat, no.tree, k)
   return(list(sol, pred))
 }
 #@@ 5-fold CV
-set.seed(666)
+set.seed(155)
 boost1 <- runboostRegCV(dat=newabcY,  no.tree=1000, k=5)
 boost2 <- runboostRegCV(dat=newabcY,  no.tree=3000, k=5)
 boost3 <- runboostRegCV(dat=newabcY,  no.tree=6000, k=5)
@@ -443,6 +441,26 @@ predboost3<-boost3[[2]]
 predboost4<-boost4[[2]]
 predboost5<-boost5[[2]]
 
+
+#fitControl <- trainControl(## 5-fold CV
+#  method = "repeatedcv",
+#  number = 5,
+  ## repeated ten times
+#  repeats = 1)
+
+#gbmGrid <- expand.grid(interaction.depth=c(1,2,3,4,5,6,7,8,9,10),n.trees = (1:15)*1000, shrinkage=c(0.001,0.005,0.01,0.05,0.1,0.5,1),n.minobsinnode=10)
+
+
+
+#gbmFit1 <- train(Target ~ ., data = newabcY[,5:35],
+#                method = "gbm",
+#                 trControl = fitControl,
+#                 ## This last option is actually one
+#                 ## for gbm() that passes through
+#                 tuneGrid=gbmGrid,
+#                 verbose = FALSE)
+
+#gbmFit1
 
 ##Tree
 
@@ -469,7 +487,7 @@ runTreeRegCV<- function(dat, k)
   return(list(sol, pred))
 }
 #@@ 5-fold CV
-set.seed(666)
+set.seed(555)
 Tree <- runTreeRegCV(dat=newabcY, k=5)
 
 predTree <- Tree[[2]]
@@ -565,9 +583,9 @@ index <- ceiling(nrow(q.rec)*seq(0.3,100,0.3)/100)
 q.rec <- q.rec[index, ]
 
 q.rec1 <- q.rec %>% select(True) %>% mutate(RecRate=True, Method="Baseline")
-q.rec2 <- q.rec %>% select(True, X2) %>% rename(RecRate=X2) %>% mutate(Method="boost")
-q.rec3 <- q.rec %>% select(True, X3) %>% rename(RecRate=X3) %>% mutate(Method="Tree")
-q.rec4 <- q.rec %>% select(True, X4) %>% rename(RecRate=X4) %>% mutate(Method="RandomForest")
+q.rec2 <- q.rec %>% select(True, X2) %>% dplyr::rename(RecRate=X2) %>% mutate(Method="boost")
+q.rec3 <- q.rec %>% select(True, X3) %>% dplyr::rename(RecRate=X3) %>% mutate(Method="Tree")
+q.rec4 <- q.rec %>% select(True, X4) %>% dplyr::rename(RecRate=X4) %>% mutate(Method="RandomForest")
 
 
 q.rec <- union(q.rec1, q.rec2)
@@ -841,11 +859,11 @@ predRF<- rf[[2]]
   q.rec <- q.rec[index, ]
   
   q.rec1 <- q.rec %>% select(True) %>% mutate(RecRate=True, Method="Baseline")
-  q.rec2 <- q.rec %>% select(True, X2) %>% rename(RecRate=X2) %>% mutate(Method="boost")
-  q.rec3 <- q.rec %>% select(True, X3) %>% rename(RecRate=X3) %>% mutate(Method="Tree")
-  q.rec4 <- q.rec %>% select(True, X4) %>% rename(RecRate=X4) %>% mutate(Method="RandomForest")
-  q.rec5 <- q.rec %>% select(True, X5) %>% rename(RecRate=X5) %>% mutate(Method="Rule Based")
-  q.rec6 <- q.rec %>% select(True, X6) %>% rename(RecRate=X6) %>% mutate(Method="Kaggle")
+  q.rec2 <- q.rec %>% select(True, X2) %>% dplyr::rename(RecRate=X2) %>% mutate(Method="boost")
+  q.rec3 <- q.rec %>% select(True, X3) %>% dplyr::rename(RecRate=X3) %>% mutate(Method="Tree")
+  q.rec4 <- q.rec %>% select(True, X4) %>% dplyr::rename(RecRate=X4) %>% mutate(Method="RandomForest")
+  q.rec5 <- q.rec %>% select(True, X5) %>% dplyr::rename(RecRate=X5) %>% mutate(Method="Rule Based")
+  q.rec6 <- q.rec %>% select(True, X6) %>% dplyr::rename(RecRate=X6) %>% mutate(Method="Kaggle")
   
   q.rec <- union(q.rec1, q.rec2)
   q.rec <- union(q.rec, q.rec3)
