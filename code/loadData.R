@@ -16,7 +16,7 @@ data3<-data3[-1,]
 
 
 
-newdata3<-select(data3,UWI=Unique.Private.Well.ID, latitude=Well.Latitude, longitude=Well.Longitude,
+newdata3<-dplyr::select(data3,UWI=Unique.Private.Well.ID, latitude=Well.Latitude, longitude=Well.Longitude,
                  S2=Hydrocarbon...S2..mg.g., 
                  Tmax=Tmax..degrees.C., 
                  XrdClayChlorite=XRD.Clay.Fraction.Chlorite..weight.percent., 
@@ -43,28 +43,28 @@ newdata3<-select(data3,UWI=Unique.Private.Well.ID, latitude=Well.Latitude, longi
                  XrdMarcasite=XRD.Bulk.Rock.Marcasite..weight.percent.,
                  GriMatrixPermeabilityAbsolute=GRI.Matrix.Permeability...Absolute..md.
                  )
-newdata3<-arrange(newdata3,UWI)
+newdata3<-dplyr::arrange(newdata3,UWI)
 newdata3[,2:28]<-sapply(newdata3[,2:28],FUN=as.numeric)
 
 for (i in c(6,13,20))
 {
   newdata3[,i][newdata3[,i]<0&!is.na(newdata3[,i])] <- NA
 }
-newdata3<-group_by(newdata3,UWI,latitude,longitude)
+newdata3<-dplyr::group_by(newdata3,UWI,latitude,longitude)
 
 
 #@@corewell SCAL
 data4<-read.csv('034_Core_SCAL.csv',header=TRUE,as.is=TRUE)
 data4<-data4[-1,]
-newdata4<-select(data4,UWI=Unique.Private.Well.ID, latitude=Well.Latitude, longitude=Well.Longitude,
+newdata4<-dplyr::select(data4,UWI=Unique.Private.Well.ID, latitude=Well.Latitude, longitude=Well.Longitude,
                  ConfiningStressDynamic=Confining.Stress...Dynamic,
                  PoissonRatioDynamic=Poisson.s.Ratio...Dynamic,
                  BulkDensityDynamic=Bulk.Density...Dynamic,
                  ShearVelocityDynamic=Shear.Velocity...Dynamic
 )
-newdata4<-arrange(newdata4,UWI)
+newdata4<-dplyr::arrange(newdata4,UWI)
 newdata4[,2:7]<-sapply(newdata4[,2:7],FUN=as.numeric)
-newdata4<-group_by(newdata4,UWI,latitude,longitude)
+newdata4<-dplyr::group_by(newdata4,UWI,latitude,longitude)
 
 
 
@@ -76,33 +76,33 @@ newdata4<-group_by(newdata4,UWI,latitude,longitude)
 
 #@@Production well location + Prod start time + true depth
 a <- read.csv("012_Prod_Well.csv", as.is=T)
-a <- a %>% select(Entity, API, Surface.Latitude, Surface.Longitude) %>% filter(!is.na(API),!is.na(Surface.Latitude),!is.na(Surface.Longitude))  # Location
+a <- a %>% dplyr::select(Entity, API, Surface.Latitude, Surface.Longitude) %>% dplyr::filter(!is.na(API),!is.na(Surface.Latitude),!is.na(Surface.Longitude))  # Location
 
 b <- read.csv("013_Prod_Header.csv", as.is=T)
-b <- b %>% select(Entity, Date.Production.Start) %>% filter(!is.na(Date.Production.Start))  # Prod start date
+b <- b %>% dplyr::select(Entity, Date.Production.Start) %>% dplyr::filter(!is.na(Date.Production.Start))  # Prod start date
 
-ab <- left_join(a, b, by="Entity")
-ab <- ab %>% distinct(API) %>% rename(Uwi=API, Latitude=Surface.Latitude, Longitude=Surface.Longitude)
+ab <- dplyr::left_join(a, b, by="Entity")
+ab <- ab %>% dplyr::distinct(API) %>% dplyr::rename(Uwi=API, Latitude=Surface.Latitude, Longitude=Surface.Longitude)
 ab$Date.Production.Start <- as.Date(ab$Date.Production.Start, format="%Y-%m-%d")
 prod.date.loc <- ab
 
 c<-read.csv("020_Well_Header.csv",as.is=T)
-c<-c %>% distinct(UWI) %>% select (Uwi=UWI,Depth.True.Vertical)
+c<-c %>% dplyr::distinct(UWI) %>% dplyr::select (Uwi=UWI,Depth.True.Vertical)
 
-abc<- inner_join(ab,c,by='Uwi')
+abc<- dplyr::inner_join(ab,c,by='Uwi')
 abc<-abc[,-5]
 
 setwd(file.path(repo_path, "/data/Kaggle/Final/RulesBasedApproach Oct 8/RulesBasedApproach Oct 8"))
 y <- read.csv("Rules features using recent and Jan 2014 data.csv")
-y1 <- select(y,Uwi)  # 2631 x 1
+y1 <- dplyr::select(y,Uwi)  # 2631 x 1
 
 
-abc <- inner_join(abc,y1,by='Uwi')
+abc <- dplyr::inner_join(abc,y1,by='Uwi')
 
 
 
 
-y2 <- select(y,Uwi,Target,Rules.Prediction, Kaggle.Prediction) #2632*4
+y2 <- dplyr::select(y,Uwi,Target,Rules.Prediction, Kaggle.Prediction) #2632*4
 
 
 
@@ -111,11 +111,11 @@ y2 <- select(y,Uwi,Target,Rules.Prediction, Kaggle.Prediction) #2632*4
 setwd(file.path(repo_path, "data/Kaggle/Final/Documentation and Input Files September 22 2014/Documentation and Input Files"))
 
 x <- read.csv("EagleFordOilInput.csv")
-x <- distinct(x, Uwi)  # rm duplicate records (5222 x 35)
-x <- select(x, -Latitude, -Longitude, -Producer.EstimatedLength.Joined,-Core.RoCalculated.Kriged)
+x <- dplyr::distinct(x, Uwi)  # rm duplicate records (5222 x 35)
+x <- dplyr::select(x, -Latitude, -Longitude, -Producer.EstimatedLength.Joined,-Core.RoCalculated.Kriged)
 x.vars <- names(x)
 x.vars <- x.vars[-1]  # rm Uwi (Uwi isn't a predictor)
-bbc <- inner_join(x, y1, by="Uwi")
+bbc <- dplyr::inner_join(x, y1, by="Uwi")
 
 
 
