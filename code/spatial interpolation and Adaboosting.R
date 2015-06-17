@@ -45,6 +45,34 @@ sumnewdata3<-dplyr::summarise(newdata3,
 
 
 
+Sumnewdata3<-dplyr::summarise(newdata3,
+                              S2=mean(S2,na.rm=TRUE),
+                              Tmax=mean(Tmax,na.rm=TRUE),
+                              XrdClayChlorite=mean(XrdClayChlorite,na.rm=TRUE),
+                              Romeasured=mean(Romeasured,na.rm=TRUE),
+                              GriWaterFilledPorosity=mean(GriWaterFilledPorosity,na.rm=TRUE),
+                              XrdClaylllite=mean(XrdClaylllite,na.rm=TRUE),
+                              GscCombustibleGasContent=mean(GscCombustibleGasContent,na.rm=TRUE),
+                              S3=mean(S3,na.rm=TRUE),
+                              GriSaturationSo=mean(GriSaturationSo,na.rm=TRUE),
+                              XrdClayKaolinite=mean(XrdClayKaolinite,na.rm=TRUE),
+                              Toc=mean(Toc,na.rm=TRUE),
+                              S1=mean(S1,na.rm=TRUE),
+                              GriSaturationSg=mean(GriSaturationSg,na.rm=TRUE),
+                              NormalizedOil=mean(NormalizedOil,na.rm=TRUE),
+                              GriGrainDensity=mean(GriGrainDensity,na.rm=TRUE),
+                              XrdDolomite=mean(XrdDolomite,na.rm=TRUE),
+                              CsgThoriumApi=mean(CsgThoriumApi,na.rm=TRUE),
+                              XrdPlagioclase=mean(XrdPlagioclase,na.rm=TRUE),
+                              StaticYoungsModulus=mean(StaticYoungsModulus,na.rm=TRUE),
+                              GriTotalPorosity=mean(GriTotalPorosity,na.rm=TRUE),
+                              GriGasFilledPorosity=mean(GriGasFilledPorosity,na.rm=TRUE),
+                              GriBulkDensity=mean(GriBulkDensity,na.rm=TRUE),
+                              GriTypeParameter=mean(GriTypeParameter,na.rm=TRUE),
+                              XrdMarcasite=mean(XrdMarcasite,na.rm=TRUE),
+                              GriMatrixPermeabilityAbsolute=mean(GriMatrixPermeabilityAbsolute,na.rm=TRUE))
+
+
 
 
 
@@ -55,23 +83,46 @@ sumnewdata4<-dplyr::summarise(newdata4,
                        ShearVelocityDynamic=mean(log(ShearVelocityDynamic+0.01),na.rm=TRUE))
 
 
+
+
+
+Sumnewdata4<-dplyr::summarise(newdata4,
+                              ConfiningStressDynamic=mean(ConfiningStressDynamic,na.rm=TRUE),
+                              PoissonRatioDynamic=mean(PoissonRatioDynamic,na.rm=TRUE),
+                              BulkDensityDynamic=mean(BulkDensityDynamic,na.rm=TRUE),
+                              ShearVelocityDynamic=mean(ShearVelocityDynamic,na.rm=TRUE))
+
+
+
 sumnewdata<-dplyr::full_join(sumnewdata3,sumnewdata4,by=c('UWI','latitude','longitude'))
+
+sumnewdata<-dplyr::full_join(Sumnewdata3,Sumnewdata4,by=c('UWI','latitude','longitude'))
 
 
 
 
 ##Variogram check
-##hhh<-!is.na(sumnewdata$Tmax)
-##lookb=variog(coords=sumnewdata[hhh,2:3],data=sumnewdata$Tmax[hhh])
-##lookc=variog(coords=sumnewdata[hhh,2:3],data=sumnewdata$Tmax[hhh],op='cloud')
-##lookbc=variog(coords=sumnewdata[hhh,2:3],data=sumnewdata$Tmax[hhh],bin.cloud=TRUE)
-##looks=variog(coords=sumnewdata[hhh,2:3],data=sumnewdata$Tmax[hhh],op='sm',band=1)
+hhh<-!is.na(sumnewdata$Tmax)
 
-##par(mfrow=c(2,2))
-##plot(lookb, main="binned variogram") 
-##plot(lookc, main="variogram cloud")
-##plot(lookbc, bin.cloud=TRUE, main="clouds for binned variogram")  
-##plot(looks, main="smoothed variogram") 
+lookb=variog(coords=sumnewdata[hhh,2:3],data=resi)
+lookc=variog(coords=sumnewdata[hhh,2:3],data=resi,op='cloud')
+lookbc=variog(coords=sumnewdata[hhh,2:3],data=resi,bin.cloud=TRUE)
+looks=variog(coords=sumnewdata[hhh,2:3],data=resi,op='sm',band=1)
+
+
+
+#resi<-lm(Tmax~latitude+longitude,data=sumnewdata[hhh,])$residuals
+#lookb=variog(coords=sumnewdata[hhh,2:3],data=sumnewdata$Tmax[hhh])
+#lookc=variog(coords=sumnewdata[hhh,2:3],data=sumnewdata$Tmax[hhh],op='cloud')
+#lookbc=variog(coords=sumnewdata[hhh,2:3],data=sumnewdata$Tmax[hhh],bin.cloud=TRUE)
+#looks=variog(coords=sumnewdata[hhh,2:3],data=sumnewdata$Tmax[hhh],op='sm',band=1)
+
+par(mfrow=c(2,2))
+plot(lookb, main="binned variogram") 
+plot(lookc, main="variogram cloud")
+plot(lookbc, bin.cloud=TRUE, main="clouds for binned variogram")  
+plot(looks, main="smoothed variogram") 
+
 
 #look4=variog4(coords=sumnewdata[,2:3],data=sumnewdata$Tmax)
 
@@ -97,6 +148,50 @@ for (i in 1:29)
   newabc<-cbind(newabc,predict(get(prename),as.matrix(abc[,3:4])))
   names(newabc)[i+5]<-varr
 }
+
+
+
+for (i in c(1:29))
+{
+  newabc[,i+5]=exp(newabc[,i+5])-0.01
+}
+
+
+
+
+write.csv(newabc,file='Interpolation for top 29 variables for production well(no truncation).csv')
+
+
+
+
+##############################################
+#Loess for 29 variables
+##############################################
+
+library(stats)
+#Loess for 29 variables
+
+for (i in 1:29)
+{
+  varr<-names(sumnewdata)[i+3]  
+  goodname<-paste('Loess',varr,sep='')  
+  assign(goodname,loess(get(varr)~latitude*longitude, data=sumnewdata,degree=1, span=0.5, normalize=F,control=loess.control(surface = "direct")))
+}
+
+
+##Prediction for production well
+
+newabc<-abc
+for (i in 1:29)
+{
+  varr<-names(sumnewdata)[i+3]
+  prename<-paste('Loess',varr,sep='') 
+  newabc<-cbind(newabc,predict(get(prename),as.matrix(abc[,3:4])))
+  names(newabc)[i+5]<-varr
+}
+
+
+
 
 
 
@@ -162,15 +257,14 @@ for (num in 1:29)
 par(op)
 
 
-
 #================================================================================================================================
-# Tree, RandomForest and Adaboosting Algorithm ###(my data)
+# Tree, RandomForest and Boosting Algorithm ###(my data)
 #================================================================================================================================
 
 #Introducint Target variable into newabc data set
 
 newabcY<-dplyr::inner_join(newabc,y2,by='Uwi')
-
+newabcY<-dplyr::arrange(newabcY,Uwi)
 
 
 
@@ -220,11 +314,11 @@ fitControl <- trainControl(## 5-fold CV
   method = "cv",
   number = 5)
 
-gbmGrid <- expand.grid(interaction.depth=c(4,10,20),n.trees = 1000, shrinkage=0.01, n.minobsinnode=10)
+gbmGrid <- expand.grid(interaction.depth=4,n.trees = 5000, shrinkage=(c(0.2,0.5,1,3,5))*0.01, n.minobsinnode=10)
 
 
 
-gbmFit1 <- train(Target ~ ., data = newabcY[,5:35],
+gbmFit <- train(Target ~ ., data = newabcY[,5:35],
                 method = "gbm",
                  trControl = fitControl,
                  tuneGrid=gbmGrid,
@@ -272,16 +366,15 @@ fitControl <- trainControl(## 5-fold CV
   number = 5,
   repeats=2)
 
-gbmGrid <- expand.grid(mtry=12)
+rfGrid <- expand.grid(mtry=12)
 
 
-gbmFit2 <- train(Target ~ ., data = newabcY[,5:35],
+rfFit <- train(Target ~ ., data = newabcY[,5:35],
                  method = "rf",
                  trControl = fitControl,
-                 tuneGrid=gbmGrid,
+                 tuneGrid=rfGrid,
                  verbose = FALSE)
 
-gbmFit2
 
 
 
@@ -466,7 +559,7 @@ predRF<- rf[[2]]
 #-------------------------------------------------------------------------------------------------------------------------
   
   
-    #@@ Comparison of different model
+  #@@ Comparison of different model
   # Prediction of  models (30 vars)
   
 
@@ -519,9 +612,6 @@ predRF<- rf[[2]]
   # lines(q.rec[,1],q.rec[,1], col="red")
   
 
-  
-  
-  
   
   
   
