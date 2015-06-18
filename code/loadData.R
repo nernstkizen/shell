@@ -46,6 +46,8 @@ newdata3<-dplyr::select(data3,UWI=Unique.Private.Well.ID, latitude=Well.Latitude
 newdata3<-dplyr::arrange(newdata3,UWI)
 newdata3[,2:28]<-sapply(newdata3[,2:28],FUN=as.numeric)
 
+
+
 for (i in c(6,13,20))
 {
   newdata3[,i][newdata3[,i]<0&!is.na(newdata3[,i])] <- NA
@@ -94,10 +96,16 @@ abc<-abc[,-5]
 
 setwd(file.path(repo_path, "/data/Kaggle/Final/RulesBasedApproach Oct 8/RulesBasedApproach Oct 8"))
 y <- read.csv("Rules features using recent and Jan 2014 data.csv")
+
 y1 <- dplyr::select(y,Uwi)  # 2631 x 1
 
 
 abc <- dplyr::inner_join(abc,y1,by='Uwi')
+
+cord2.dec = SpatialPoints(cbind(abc$Longitude, abc$Latitude), proj4string=CRS("+proj=longlat"))
+cord2.UTM <- spTransform(cord2.dec, CRS("+proj=utm +north +zone=14"))
+abc$Longitude <- coordinates(cord2.UTM)[,1]
+abc$Latitude <- coordinates(cord2.UTM)[,2]
 
 
 

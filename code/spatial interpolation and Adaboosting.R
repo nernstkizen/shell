@@ -99,32 +99,38 @@ sumnewdata<-dplyr::full_join(sumnewdata3,sumnewdata4,by=c('UWI','latitude','long
 sumnewdata<-dplyr::full_join(Sumnewdata3,Sumnewdata4,by=c('UWI','latitude','longitude'))
 
 
+cord1.dec = SpatialPoints(cbind(sumnewdata$longitude, sumnewdata$latitude), proj4string=CRS("+proj=longlat"))
+cord1.UTM <- spTransform(cord1.dec, CRS("+proj=utm +north +zone=14"))
+sumnewdata$longitude <- coordinates(cord1.UTM)[,1]
+sumnewdata$latitude <- coordinates(cord1.UTM)[,2]
+
+
+
 
 
 ##Variogram check
 hhh<-!is.na(sumnewdata$Tmax)
 
-lookb=variog(coords=sumnewdata[hhh,2:3],data=resi)
-lookc=variog(coords=sumnewdata[hhh,2:3],data=resi,op='cloud')
-lookbc=variog(coords=sumnewdata[hhh,2:3],data=resi,bin.cloud=TRUE)
-looks=variog(coords=sumnewdata[hhh,2:3],data=resi,op='sm',band=1)
+resi<-lm(Tmax~latitude+longitude, data=sumnewdata[hhh,])$residuals
 
-
-
-#resi<-lm(Tmax~latitude+longitude,data=sumnewdata[hhh,])$residuals
-#lookb=variog(coords=sumnewdata[hhh,2:3],data=sumnewdata$Tmax[hhh])
-#lookc=variog(coords=sumnewdata[hhh,2:3],data=sumnewdata$Tmax[hhh],op='cloud')
-#lookbc=variog(coords=sumnewdata[hhh,2:3],data=sumnewdata$Tmax[hhh],bin.cloud=TRUE)
-#looks=variog(coords=sumnewdata[hhh,2:3],data=sumnewdata$Tmax[hhh],op='sm',band=1)
+lookb=variog(coords=sumnewdata[hhh,2:3],data=resi,max.dist=max(dist(sumnewdata[,2:3]))*0.8)
+lookc=variog(coords=sumnewdata[hhh,2:3],data=resi,op='cloud',max.dist=max(dist(sumnewdata[,2:3]))*0.8)
+lookbc=variog(coords=sumnewdata[hhh,2:3],data=resi,bin.cloud=TRUE,max.dist=max(dist(sumnewdata[,2:3]))*0.8)
+looks=variog(coords=sumnewdata[hhh,2:3],data=resi,op='sm',band=8000,max.dist=max(dist(sumnewdata[,2:3]))*0.8)
 
 par(mfrow=c(2,2))
 plot(lookb, main="binned variogram") 
 plot(lookc, main="variogram cloud")
 plot(lookbc, bin.cloud=TRUE, main="clouds for binned variogram")  
-plot(looks, main="smoothed variogram") 
+plot(looks, main="smoothed variogram",ylim=c(0,2000)) 
 
 
-#look4=variog4(coords=sumnewdata[,2:3],data=sumnewdata$Tmax)
+
+
+
+
+
+#look4=variog4(coords=sumnewdata[hhh,2:3],data=resid)
 
 
 ##Kriging for 29 variables
@@ -156,6 +162,9 @@ for (i in c(1:29))
   newabc[,i+5]=exp(newabc[,i+5])-0.01
 }
 
+
+newabc$Longitude <- coordinates(cord2.dec)[,1]
+newabc$Latitude <- coordinates(cord2.dec)[,2]
 
 
 
@@ -202,6 +211,9 @@ for (i in c(1:29))
 
 
 
+newabc$Longitude <- coordinates(cord2.dec)[,1]
+newabc$Latitude <- coordinates(cord2.dec)[,2]
+
 
 write.csv(newabc,file='Interpolation for top 29 variables for production well(no truncation).csv')
 
@@ -213,8 +225,8 @@ write.csv(newabc,file='Interpolation for top 29 variables for production well(no
 
 #@@Test Data for drawing kriging heatmap
 testdata<-matrix(0,14400,2)
-testdata[,1]<-rep(seq(from=27,to=32,length=120),each=120)
-testdata[,2]<-rep(seq(from=-101,to=-96,length=120),120)
+testdata[,1]<-rep(seq(from=min(sumnewdata$latitude),to=max(sumnewdata$latitude),length=120),each=120)
+testdata[,2]<-rep(seq(from=min(sumnewdata$longitude),to=max(sumnewdata$longitude),length=120),120)
 
 test<-as.data.frame(testdata)
 

@@ -16,6 +16,7 @@ options(java.parameters = "-Xmx1g")
 ### Library
 #---------------------------------------------------------------------------------------------------------------------
 library(dplyr)
+library(rgdal)
 library(geoR)
 library(fields)
 library(ggplot2)
