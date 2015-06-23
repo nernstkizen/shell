@@ -15,33 +15,32 @@ setwd(file.path(repo_path, "/data"))
 ##Aggregate data
 
 
-
 sumnewdata3<-dplyr::summarise(newdata3,
-                       S2=mean(log(S2+0.01),na.rm=TRUE),
-                       Tmax=mean(log(Tmax+0.01),na.rm=TRUE),
-                       XrdClayChlorite=mean(log(XrdClayChlorite+0.01),na.rm=TRUE),
-                       Romeasured=mean(log(Romeasured+0.01),na.rm=TRUE),
-                       GriWaterFilledPorosity=mean(log(GriWaterFilledPorosity+0.01),na.rm=TRUE),
-                       XrdClaylllite=mean(log(XrdClaylllite+0.01),na.rm=TRUE),
-                       GscCombustibleGasContent=mean(log(GscCombustibleGasContent+0.01),na.rm=TRUE),
-                       S3=mean(log(S3+0.01),na.rm=TRUE),
-                       GriSaturationSo=mean(log(GriSaturationSo+0.01),na.rm=TRUE),
+                       S2=mean(log(S2+0.1),na.rm=TRUE),
+                       Tmax=mean(log(Tmax+0.1),na.rm=TRUE),
+                       XrdClayChlorite=mean(log(XrdClayChlorite+0.1),na.rm=TRUE),
+                       Romeasured=mean(log(Romeasured+0.1),na.rm=TRUE),
+                       GriWaterFilledPorosity=mean(log(GriWaterFilledPorosity+0.1),na.rm=TRUE),
+                       XrdClaylllite=mean(log(XrdClaylllite+0.1),na.rm=TRUE),
+                       GscCombustibleGasContent=mean(log(GscCombustibleGasContent+0.1),na.rm=TRUE),
+                       S3=mean(log(S3+0.1),na.rm=TRUE),
+                       GriSaturationSo=mean(log(GriSaturationSo+0.1),na.rm=TRUE),
                        XrdClayKaolinite=mean(log(XrdClayKaolinite+1),na.rm=TRUE),
-                       Toc=mean(log(Toc+0.01),na.rm=TRUE),
-                       S1=mean(log(S1+0.01),na.rm=TRUE),
-                       GriSaturationSg=mean(log(GriSaturationSg+0.01),na.rm=TRUE),
-                       NormalizedOil=mean(log(NormalizedOil+0.01),na.rm=TRUE),
-                       GriGrainDensity=mean(log(GriGrainDensity+0.01),na.rm=TRUE),
-                       XrdDolomite=mean(log(XrdDolomite+0.01),na.rm=TRUE),
-                       CsgThoriumApi=mean(log(CsgThoriumApi+0.01),na.rm=TRUE),
-                       XrdPlagioclase=mean(log(XrdPlagioclase+0.01),na.rm=TRUE),
-                       StaticYoungsModulus=mean(log(StaticYoungsModulus+0.01),na.rm=TRUE),
-                       GriTotalPorosity=mean(log(GriTotalPorosity+0.01),na.rm=TRUE),
-                       GriGasFilledPorosity=mean(log(GriGasFilledPorosity+0.01),na.rm=TRUE),
-                       GriBulkDensity=mean(log(GriBulkDensity+0.01),na.rm=TRUE),
-                       GriTypeParameter=mean(log(GriTypeParameter+0.01),na.rm=TRUE),
-                       XrdMarcasite=mean(log(XrdMarcasite+0.01),na.rm=TRUE),
-                       GriMatrixPermeabilityAbsolute=mean(log(GriMatrixPermeabilityAbsolute+0.01),na.rm=TRUE))
+                       Toc=mean(log(Toc+0.1),na.rm=TRUE),
+                       S1=mean(log(S1+0.1),na.rm=TRUE),
+                       GriSaturationSg=mean(log(GriSaturationSg+0.1),na.rm=TRUE),
+                       NormalizedOil=mean(log(NormalizedOil+0.1),na.rm=TRUE),
+                       GriGrainDensity=mean(log(GriGrainDensity+0.1),na.rm=TRUE),
+                       XrdDolomite=mean(log(XrdDolomite+0.1),na.rm=TRUE),
+                       CsgThoriumApi=mean(log(CsgThoriumApi+0.1),na.rm=TRUE),
+                       XrdPlagioclase=mean(log(XrdPlagioclase+0.1),na.rm=TRUE),
+                       StaticYoungsModulus=mean(log(StaticYoungsModulus+0.1),na.rm=TRUE),
+                       GriTotalPorosity=mean(log(GriTotalPorosity+0.1),na.rm=TRUE),
+                       GriGasFilledPorosity=mean(log(GriGasFilledPorosity+0.1),na.rm=TRUE),
+                       GriBulkDensity=mean(log(GriBulkDensity+0.1),na.rm=TRUE),
+                       GriTypeParameter=mean(log(GriTypeParameter+0.1),na.rm=TRUE),
+                       XrdMarcasite=mean(log(XrdMarcasite+0.1),na.rm=TRUE),
+                       GriMatrixPermeabilityAbsolute=mean(log(GriMatrixPermeabilityAbsolute+0.1),na.rm=TRUE))
 
 
 
@@ -77,10 +76,10 @@ Sumnewdata3<-dplyr::summarise(newdata3,
 
 
 sumnewdata4<-dplyr::summarise(newdata4,
-                       ConfiningStressDynamic=mean(log(ConfiningStressDynamic+0.01),na.rm=TRUE),
-                       PoissonRatioDynamic=mean(log(PoissonRatioDynamic+0.01),na.rm=TRUE),
-                       BulkDensityDynamic=mean(log(BulkDensityDynamic+0.01),na.rm=TRUE),
-                       ShearVelocityDynamic=mean(log(ShearVelocityDynamic+0.01),na.rm=TRUE))
+                       ConfiningStressDynamic=mean(log(ConfiningStressDynamic+0.1),na.rm=TRUE),
+                       PoissonRatioDynamic=mean(log(PoissonRatioDynamic+0.1),na.rm=TRUE),
+                       BulkDensityDynamic=mean(log(BulkDensityDynamic+0.1),na.rm=TRUE),
+                       ShearVelocityDynamic=mean(log(ShearVelocityDynamic+0.1),na.rm=TRUE))
 
 
 
@@ -106,28 +105,46 @@ sumnewdata$latitude <- coordinates(cord1.UTM)[,2]
 
 
 
+####Check the trend#################
+
+
+hhh<-!is.na(sumnewdata$Tmax)
+plot(sumnewdata[hhh,]$longitude,sumnewdata[hhh,]$latitude)
+
+akima.li<-interp(x=sumnewdata[hhh,]$longitude,y=sumnewdata[hhh,]$latitude,z=sumnewdata[hhh,]$Tmax,linear=FALSE,duplicate = "median")
+
+
+test<-matrix(0,1600,3)
+{
+  test[,1]<-rep(akima.li$x,40)
+  test[,2]<-rep(akima.li$y,each=40)
+  test[,3]<-as.vector(akima.li$z)
+}
+test<-as.data.frame(test)
+names(test)[1:3]<-c("longitude","latitude",'Tmax')
+
+ggplot(data=test,aes(x=longitude,y=latitude,z=Tmax))+geom_tile(aes(fill =Tmax))+ 
+  scale_fill_gradient(low = "white", high = "red")+
+  stat_contour(size=1,aes(colour=..level..))+geom_point(data=sumnewdata[hhh,],aes(x=longitude,y=latitude,colour=Tmax),size=8)+ 
+  scale_colour_gradient(low = "white", high = "blue")
+
 
 
 ##Variogram check
 hhh<-!is.na(sumnewdata$Tmax)
 
-resi<-lm(Tmax~latitude+longitude, data=sumnewdata[hhh,])$residuals
+resi<-lm(Tmax~latitude+longitude+I(latitude^2)+I(longitude), data=sumnewdata[hhh,])$residuals
 
-lookb=variog(coords=sumnewdata[hhh,2:3],data=resi,max.dist=max(dist(sumnewdata[,2:3]))*0.8)
-lookc=variog(coords=sumnewdata[hhh,2:3],data=resi,op='cloud',max.dist=max(dist(sumnewdata[,2:3]))*0.8)
-lookbc=variog(coords=sumnewdata[hhh,2:3],data=resi,bin.cloud=TRUE,max.dist=max(dist(sumnewdata[,2:3]))*0.8)
-looks=variog(coords=sumnewdata[hhh,2:3],data=resi,op='sm',band=8000,max.dist=max(dist(sumnewdata[,2:3]))*0.8)
+lookb=variog(coords=sumnewdata[hhh,2:3],data=sumnewdata[hhh,]$Tmax,max.dist=max(dist(sumnewdata[,2:3]))*0.9,trend='2nd')
+lookc=variog(coords=sumnewdata[hhh,2:3],data=sumnewdata[hhh,]$Tmax,op='cloud',max.dist=max(dist(sumnewdata[,2:3]))*0.9,trend='2nd')
+lookbc=variog(coords=sumnewdata[hhh,2:3],data=sumnewdata[hhh,]$Tmax,bin.cloud=TRUE,max.dist=max(dist(sumnewdata[,2:3]))*0.9,trend='2nd')
+looks=variog(coords=sumnewdata[hhh,2:3],data=sumnewdata[hhh,]$Tmax,op='sm',band=8000,max.dist=max(dist(sumnewdata[,2:3]))*0.9,trend='2nd')
 
 par(mfrow=c(2,2))
 plot(lookb, main="binned variogram") 
 plot(lookc, main="variogram cloud")
 plot(lookbc, bin.cloud=TRUE, main="clouds for binned variogram")  
-plot(looks, main="smoothed variogram",ylim=c(0,2000)) 
-
-
-
-
-
+plot(looks, main="smoothed variogram",ylim=c(0,0.0025)) 
 
 
 #look4=variog4(coords=sumnewdata[hhh,2:3],data=resid)
@@ -157,9 +174,10 @@ for (i in 1:29)
 
 
 
+
 for (i in c(1:29))
 {
-  newabc[,i+5]=exp(newabc[,i+5])-0.01
+  newabc[,i+5]=exp(newabc[,i+5])-0.1
 }
 
 
@@ -177,7 +195,7 @@ write.csv(newabc,file='Interpolation for top 29 variables for production well(no
 #Loess for 29 variables
 ##############################################
 
-library(stats)
+
 #Loess for 29 variables
 
 for (i in 1:29)
@@ -201,12 +219,9 @@ for (i in 1:29)
 
 
 
-
-
-
 for (i in c(1:29))
 {
-  newabc[,i+5]=exp(newabc[,i+5])-0.01
+  newabc[,i+5]=exp(newabc[,i+5])-0.1
 }
 
 
@@ -240,7 +255,7 @@ for (i in 1:29)
 
 for (i in c(1:29))
 {
-  test[,i+2]=exp(test[,i+2])-0.01
+  test[,i+2]=exp(test[,i+2])-0.1
 }
 
 
@@ -277,7 +292,6 @@ par(op)
 
 newabcY<-dplyr::inner_join(newabc,y2,by='Uwi')
 newabcY<-dplyr::arrange(newabcY,Uwi)
-
 
 
 
@@ -387,8 +401,57 @@ rfFit <- train(Target ~ ., data = newabcY[,5:35],
                  tuneGrid=rfGrid,
                  verbose = FALSE)
 
+predict(rfFit,newabcY[,3:35])
 
 
+
+#####Direct Kriging##################
+
+
+runKriCV <- function(dat, k){
+  
+  folds <- cvFolds(nrow(dat), K=k)
+  mse <- NULL;  pred <- NULL; sol <- NULL;
+  
+cord1.dec = SpatialPoints(cbind(dat$Longitude, dat$Latitude), proj4string=CRS("+proj=longlat"))
+cord1.UTM <- spTransform(cord1.dec, CRS("+proj=utm +north +zone=14"))
+dat$Longitude <- coordinates(cord1.UTM)[,1]
+dat$Latitude <- coordinates(cord1.UTM)[,2]
+  
+  for(i in 1:k){  
+    # Split data into train/test set
+    
+    test  <- dat[folds$subsets[folds$which==i],]
+    train <- dplyr::setdiff(dat, test)
+    
+    
+    #####################################################################################################
+    
+    # Predict test dataset and calculate mse
+    
+    lookb=variog(coords=dat[,c(4,3)],data=dat[,35],trend='1st')
+    #lookbc=variog(coords=train[,c(4,3)],data=train[,35],trend='2nd',bin.cloud=TRUE)
+    #par(mfrow=c(2,2))
+    #plot(lookb, main="binned variogram") 
+    #plot(lookbc, bin.cloud=TRUE, main="clouds for binned variogram")  
+    
+    covpar<-variofit(lookb,kappa=0.5)
+    model <- Krig(x=dat[,c(4,3)],Y=dat[,35],theta=covpar$cov.pars[2]) 
+    test.pred <- cbind(test[,c(2,35)], Pred=predict(model,as.matrix(test[,c(4,3)])), test[,c(36,37)]) 
+    
+     # Uwi, Target, Pred, Latitude, Longitude
+    mse <- c(mse, sum((test.pred[,2]-test.pred[,3])^2)/nrow(test.pred))
+    pred <- rbind(pred, test.pred)  # save prediction results for fold i
+  }
+  # CV results
+  rmse <- sqrt(mse)
+  sol <- data.frame(K=k, mse=mean(mse), mse.sd=sd(mse), rmse=mean(rmse), rmse.sd=sd(rmse))
+  return(list(sol, pred))
+  
+}
+set.seed(897)
+Kri <- runKriCV(dat=newabcY, k=5)
+predKri<- Kri[[2]] 
 
 
 
@@ -426,11 +489,12 @@ qRecCurv <- function(x) {
 # Prediction of  models (30 vars)
 pred.boost<-dplyr::select(predboost5,Uwi, Target,boost=Pred)
 pred.RF<-dplyr::select(predRF, Uwi, RF=Pred)
-
+pred.Kri<-dplyr::select(predKri,Uwi,Kri=Pred)
 
 
 
 jo <- dplyr::left_join(pred.boost, pred.RF, by="Uwi")
+jo <- dplyr::left_join(jo,pred.Kri,by='Uwi')
 jo <- jo[,-1]  # rm Uwi
 
 q.rec <- qRecCurv(jo) * 100
@@ -442,16 +506,17 @@ q.rec <- q.rec[index, ]
 q.rec1 <- q.rec %>% dplyr::select(True) %>% dplyr::mutate(RecRate=True, Method="Baseline")
 q.rec2 <- q.rec %>% dplyr::select(True, X2) %>% dplyr::rename(RecRate=X2) %>% dplyr::mutate(Method="boost")
 q.rec3 <- q.rec %>% dplyr::select(True, X3) %>% dplyr::rename(RecRate=X3) %>% dplyr::mutate(Method="RandomForest")
+q.rec4 <- q.rec %>% dplyr::select(True, X4) %>% dplyr::rename(RecRate=X4) %>% dplyr::mutate(Method="Kriging")
 
 
 q.rec <- dplyr::union(q.rec1, q.rec2)
 q.rec <- dplyr::union(q.rec, q.rec3)
-
+q.rec <- dplyr::union(q.rec, q.rec4)
 
 
 ggplot(q.rec, aes(x=True, y=RecRate, colour=Method, group=Method)) + 
   geom_line(lwd=1.2) +
-  scale_color_manual(values=c("#fe506e", "black", "#228b22")) +
+  scale_color_manual(values=c("#fe506e", "black", "#228b22","#0099cc")) +
   xlab("Top Quantile Percentage") + ylab("Recover Rate") + 
   theme(#legend.position="none",
     axis.title.x = element_text(size=24),
@@ -624,6 +689,10 @@ predRF<- rf[[2]]
   # lines(q.rec[,1],q.rec[,1], col="red")
   
 
-  
-  
-  
+
+
+
+
+
+
+
