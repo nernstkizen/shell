@@ -133,8 +133,6 @@ ggplot(data=test,aes(x=longitude,y=latitude,z=Tmax))+geom_tile(aes(fill =Tmax))+
 ##Variogram check
 hhh<-!is.na(sumnewdata$Tmax)
 
-resi<-lm(Tmax~latitude+longitude+I(latitude^2)+I(longitude), data=sumnewdata[hhh,])$residuals
-
 lookb=variog(coords=sumnewdata[hhh,2:3],data=sumnewdata[hhh,]$Tmax,max.dist=max(dist(sumnewdata[,2:3]))*0.9,trend='2nd')
 lookc=variog(coords=sumnewdata[hhh,2:3],data=sumnewdata[hhh,]$Tmax,op='cloud',max.dist=max(dist(sumnewdata[,2:3]))*0.9,trend='2nd')
 lookbc=variog(coords=sumnewdata[hhh,2:3],data=sumnewdata[hhh,]$Tmax,bin.cloud=TRUE,max.dist=max(dist(sumnewdata[,2:3]))*0.9,trend='2nd')
@@ -156,8 +154,13 @@ plot(looks, main="smoothed variogram",ylim=c(0,0.0025))
 for (i in 1:29)
 {
 varr<-names(sumnewdata)[i+3]  
-goodname<-paste('Krig',varr,sep='')  
-assign(goodname,Krig(x=sumnewdata[,2:3], Y=sumnewdata[,i+3]))
+goodname<-paste('Krig',varr,sep='') 
+hhh<-!is.na(sumnewdata[,i+3])
+lookb=variog(coords=sumnewdata[hhh,c(3,2)],data=sumnewdata[hhh,i+3],trend='2nd')
+covpar<-variofit(lookb,kappa=0.5)
+if(covpar$cov.pars[2]==0) 
+{covpar$cov.pars[2]=0.01}
+assign(goodname,Krig(x=sumnewdata[,c(3,2)], Y=sumnewdata[,i+3],theta=covpar$cov.pars[2],m=3))
 }
 
 
@@ -168,7 +171,7 @@ for (i in 1:29)
 {
   varr<-names(sumnewdata)[i+3]
   prename<-paste('Krig',varr,sep='') 
-  newabc<-cbind(newabc,predict(get(prename),as.matrix(abc[,3:4])))
+  newabc<-cbind(newabc,predict(get(prename),as.matrix(abc[,c(4,3)])))
   names(newabc)[i+5]<-varr
 }
 
@@ -180,6 +183,20 @@ for (i in c(1:29))
   newabc[,i+5]=exp(newabc[,i+5])-0.1
 }
 
+
+##Easier way to plot####
+set.panel()
+surface(KrigTmax, type="C",xlab='X',ylab='Y',main='Kriging results for Tmax') # look at the surface 
+points(KrigTmax$x)
+
+
+
+
+#library(maps)
+#library(mapdata)
+#library(mapproj)
+
+#map(database= "county", ylim=c(45,90), xlim=c(-160,-50), col="grey80", fill=TRUE,add=TRUE)
 
 newabc$Longitude <- coordinates(cord2.dec)[,1]
 newabc$Latitude <- coordinates(cord2.dec)[,2]
@@ -284,6 +301,11 @@ for (num in 1:29)
 par(op)
 
 
+
+
+
+
+
 #================================================================================================================================
 # Tree, RandomForest and Boosting Algorithm ###(my data)
 #================================================================================================================================
@@ -293,6 +315,8 @@ par(op)
 newabcY<-dplyr::inner_join(newabc,y2,by='Uwi')
 newabcY<-dplyr::arrange(newabcY,Uwi)
 
+
+write.csv(newabcY,file='Data preparing for Machine learning.csv')
 
 
 ##boosting
@@ -307,48 +331,51 @@ runboostRegCV<- function(dat, no.tree, k)
     
     test  <- dat[folds$subsets[folds$which==i],]
     train <- dplyr::setdiff(dat, test)
-    model <- gbm(Target~., data=train[,5:35], n.trees=no.tree, shrinkage=0.01,distribution='gaussian',interaction.depth=4)  
-    
+    #model <- gbm(Target~., data=train[,5:35], n.trees=no.tree, shrinkage=0.01,distribution='gaussian',interaction.depth=4)  
+    model <- gbm(Target~., data=train[,3:35], n.trees=no.tree, shrinkage=0.01,distribution='gaussian',interaction.depth=4) 
     #####################################################################################################
     
     # Predict test dataset and calculate mse
-    test.pred <- cbind(test[,c(2,35)], Pred=predict(model,newdata=test[,5:34],n.trees<-no.tree), test[,c(36,37)])  # Uwi, Target, Pred, Latitude, Longitude
+    #test.pred <- cbind(test[,c(2,35)], Pred=predict(model,newdata=test[,5:34],n.trees<-no.tree), test[,c(36,37)])
+    test.pred <- cbind(test[,c(2,35)], Pred=predict(model,newdata=test[,3:34],n.trees<-no.tree), test[,c(36,37)])# Uwi, Target, Pred, Latitude, Longitude
     mse <- c(mse, sum((test.pred[,2]-test.pred[,3])^2)/nrow(test.pred))
     pred <- rbind(pred, test.pred)  # save prediction results for fold i
   }
   # CV results
-  rmse <- sqrt(mse)
-  sol <- data.frame(K=k,mse=mean(mse), mse.sd=sd(mse), rmse=mean(rmse), rmse.sd=sd(rmse),n.Tree=no.tree)
+  sol <- data.frame(K=k,mse=mean(mse), rmse=sqrt(mean(mse)),n.Tree=no.tree)
   return(list(sol, pred))
 }
 #@@ 5-fold CV
-set.seed(155)
-boost1 <- runboostRegCV(dat=newabcY,  no.tree=1000, k=5)
-boost2 <- runboostRegCV(dat=newabcY,  no.tree=3000, k=5)
-boost3 <- runboostRegCV(dat=newabcY,  no.tree=6000, k=5)
-boost4 <- runboostRegCV(dat=newabcY,  no.tree=10000, k=5)
-boost5 <- runboostRegCV(dat=newabcY,  no.tree=15000, k=5)
-
-predboost1<-boost1[[2]]
-predboost2<-boost2[[2]]
-predboost3<-boost3[[2]]
-predboost4<-boost4[[2]]
+boost5 <- runboostRegCV(dat=newabcY,  no.tree=5000, k=5)
 predboost5<-boost5[[2]]
+
+
+
+
+
 
 
 fitControl <- trainControl(## 5-fold CV
   method = "cv",
   number = 5)
 
-gbmGrid <- expand.grid(interaction.depth=4,n.trees = 5000, shrinkage=(c(0.2,0.5,1,3,5))*0.01, n.minobsinnode=10)
+gbmGrid <- expand.grid(interaction.depth=c(4),n.trees = 5000, shrinkage=(c(1))*0.01, n.minobsinnode=10)
 
 
 
-gbmFit <- train(Target ~ ., data = newabcY[,5:35],
+gbmFit <- train(Target ~ ., data = newabcY[,3:35],
                 method = "gbm",
                  trControl = fitControl,
                  tuneGrid=gbmGrid,
                  verbose = FALSE)
+
+
+
+
+
+
+
+
 
 
 
@@ -363,19 +390,20 @@ runRFRegCV <- function(dat, m, no.tree, k ,ntrace=500){
     
     test  <- dat[folds$subsets[folds$which==i],]
     train <- dplyr::setdiff(dat, test)
-    model <- randomForest(Target~., data=train[,5:35], importance=T, mtry=m, do.trace=ntrace, ntree=no.tree)  
-    
+    #model <- randomForest(Target~., data=train[,5:35], importance=T, mtry=m, do.trace=ntrace, ntree=no.tree)  
+    model <- randomForest(Target~., data=train[,3:35], importance=T, mtry=m, do.trace=ntrace, ntree=no.tree)
     #####################################################################################################
     
     # Predict test dataset and calculate mse
-    test.pred <- cbind(test[,c(2,35)], Pred=predict(model,newdata=test[,5:34]), test[,c(36,37)])  # Uwi, Target, Pred, Latitude, Longitude
+    #test.pred <- cbind(test[,c(2,35)], Pred=predict(model,newdata=test[,5:34]), test[,c(36,37)])  # Uwi, Target, Pred, Latitude, Longitude
+    test.pred <- cbind(test[,c(2,35)], Pred=predict(model,newdata=test[,3:34]), test[,c(36,37)])  # Uwi, Target, Pred, Latitude, Longitude
+    
     mse <- c(mse, sum((test.pred[,2]-test.pred[,3])^2)/nrow(test.pred))
     pred <- rbind(pred, test.pred)  # save prediction results for fold i
   }
   # CV results
   m <- model$mtry  # get default value of mtry
-  rmse <- sqrt(mse)
-  sol <- data.frame(K=k, mse=mean(mse), mse.sd=sd(mse), rmse=mean(rmse), rmse.sd=sd(rmse), m=m, n.Tree=no.tree)
+  sol <- data.frame(K=k,mse=mean(mse), rmse=sqrt(mean(mse)), m=m, n.Tree=no.tree)
   return(list(sol, pred))
 }
 
@@ -429,14 +457,16 @@ dat$Latitude <- coordinates(cord1.UTM)[,2]
     
     # Predict test dataset and calculate mse
     
-    lookb=variog(coords=dat[,c(4,3)],data=dat[,35],trend='1st')
+    lookb=variog(coords=train[,c(4,3)],data=train[,35],trend='2nd')
     #lookbc=variog(coords=train[,c(4,3)],data=train[,35],trend='2nd',bin.cloud=TRUE)
     #par(mfrow=c(2,2))
     #plot(lookb, main="binned variogram") 
     #plot(lookbc, bin.cloud=TRUE, main="clouds for binned variogram")  
     
     covpar<-variofit(lookb,kappa=0.5)
-    model <- Krig(x=dat[,c(4,3)],Y=dat[,35],theta=covpar$cov.pars[2]) 
+    if(covpar$cov.pars[2]==0) 
+    {covpar$cov.pars[2]=0.01}
+    model <- Krig(x=train[,c(4,3)],Y=train[,35],theta=covpar$cov.pars[2],m=3) 
     test.pred <- cbind(test[,c(2,35)], Pred=predict(model,as.matrix(test[,c(4,3)])), test[,c(36,37)]) 
     
      # Uwi, Target, Pred, Latitude, Longitude
@@ -444,14 +474,62 @@ dat$Latitude <- coordinates(cord1.UTM)[,2]
     pred <- rbind(pred, test.pred)  # save prediction results for fold i
   }
   # CV results
-  rmse <- sqrt(mse)
-  sol <- data.frame(K=k, mse=mean(mse), mse.sd=sd(mse), rmse=mean(rmse), rmse.sd=sd(rmse))
+  sol <- data.frame(K=k,mse=mean(mse), rmse=sqrt(mean(mse)))
   return(list(sol, pred))
   
 }
 set.seed(897)
 Kri <- runKriCV(dat=newabcY, k=5)
 predKri<- Kri[[2]] 
+
+
+
+###New method########
+
+fitControl <- trainControl(## 5-fold CV
+  method = "cv",
+  number = 5)
+
+newGrid <- expand.grid(C=c(10,20,5,1),sigma=0.2)
+
+
+
+newFit <- train(Target ~ ., data = newabcY[,5:35],
+                method = "svmRadial",
+                tuneGrid=newGrid,
+                trControl = fitControl)
+
+
+runRegSVMCV <- function(dat, k){
+  
+  folds <- cvFolds(nrow(dat), K=k)
+  mse <- NULL;  pred <- NULL; sol <- NULL;
+  
+  for(i in 1:k){  
+    # Split data into train/test set
+    
+    test  <- dat[folds$subsets[folds$which==i],]
+    train <- dplyr::setdiff(dat, test)
+    model <- svm(Target~., train[,5:35])  
+    
+    #####################################################################################################
+    
+    # Predict test dataset and calculate mse
+    test.pred <- cbind(test[,c(2,35)], Pred=predict(model,newdata=test[,5:34]), test[,c(36,37)])  # Uwi, Target, Pred, Latitude, Longitude
+    mse <- c(mse, sum((test.pred[,2]-test.pred[,3])^2)/nrow(test.pred))
+    pred <- rbind(pred, test.pred)  # save prediction results for fold i
+  }
+  # CV results
+  sol <- data.frame(K=k,mse=mean(mse), rmse=sqrt(mean(mse)))
+  return(list(sol, pred))
+}
+set.seed(897)
+svm <- runRegSVMCV(dat=newabcY, k=5)
+predsvm<- svm[[2]] 
+
+tuneResult <- tune(svm, Target~.,  data = train[,5:35],
+                   ranges = list(epsilon = seq(0,1,0.1), cost = 2^(2:9))
+)
 
 
 
@@ -569,22 +647,15 @@ runboostRegCV<- function(dat, no.tree, k)
     pred <- rbind(pred, test.pred)  # save prediction results for fold i
   }
   # CV results
-  rmse <- sqrt(mse)
-  sol <- data.frame(K=k,mse=mean(mse), mse.sd=sd(mse), rmse=mean(rmse), rmse.sd=sd(rmse),n.Tree=no.tree)
+  sol <- data.frame(K=k,mse=mean(mse), rmse=sqrt(mean(mse)),n.Tree=no.tree)
   return(list(sol, pred))
 }
 #@@ 5-fold CV
 set.seed(666)
-boost1 <- runboostRegCV(dat=newbbcY,  no.tree=1000, k=5)
-boost2 <- runboostRegCV(dat=newbbcY,  no.tree=3000, k=5)
-boost3 <- runboostRegCV(dat=newbbcY,  no.tree=6000, k=5)
-boost4 <- runboostRegCV(dat=newbbcY,  no.tree=10000, k=5)
-boost5 <- runboostRegCV(dat=newbbcY,  no.tree=15000, k=5)
 
-predboost1<-boost1[[2]]
-predboost2<-boost2[[2]]
-predboost3<-boost3[[2]]
-predboost4<-boost4[[2]]
+boost5 <- runboostRegCV(dat=newbbcY,  no.tree=5000, k=5)
+
+
 predboost5<-boost5[[2]]
 
 
@@ -617,8 +688,7 @@ runRFRegCV <- function(dat, m, no.tree, k ,ntrace=500){
   }
   # CV results
   m <- model$mtry  # get default value of mtry
-  rmse <- sqrt(mse)
-  sol <- data.frame(K=k, mse=mean(mse), mse.sd=sd(mse), rmse=mean(rmse), rmse.sd=sd(rmse), m=m, n.Tree=no.tree)
+  sol <- data.frame(K=k,mse=mean(mse), rmse=sqrt(mean(mse)), m=m, n.Tree=no.tree)
   return(list(sol, pred))
 }
 
@@ -626,9 +696,6 @@ runRFRegCV <- function(dat, m, no.tree, k ,ntrace=500){
 set.seed(666)
 rf <- runRFRegCV(dat=newbbcY,  m=12, no.tree=1000, k=5)
 predRF<- rf[[2]] 
-
-
-
 
 
 #-------------------------------------------------------------------------------------------------------------------------
@@ -688,8 +755,6 @@ predRF<- rf[[2]]
   # plot(q.rec, type="l", xlab="Top Quantile Percentage", ylab="Recover Rate")
   # lines(q.rec[,1],q.rec[,1], col="red")
   
-
-
 
 
 
