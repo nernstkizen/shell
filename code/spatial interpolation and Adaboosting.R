@@ -15,34 +15,6 @@ setwd(file.path(repo_path, "/data"))
 ##Aggregate data
 
 
-sumnewdata3<-dplyr::summarise(newdata3,
-                       S2=mean(log(S2+0.1),na.rm=TRUE),
-                       Tmax=mean(log(Tmax+0.1),na.rm=TRUE),
-                       XrdClayChlorite=mean(log(XrdClayChlorite+0.1),na.rm=TRUE),
-                       Romeasured=mean(log(Romeasured+0.1),na.rm=TRUE),
-                       GriWaterFilledPorosity=mean(log(GriWaterFilledPorosity+0.1),na.rm=TRUE),
-                       XrdClaylllite=mean(log(XrdClaylllite+0.1),na.rm=TRUE),
-                       GscCombustibleGasContent=mean(log(GscCombustibleGasContent+0.1),na.rm=TRUE),
-                       S3=mean(log(S3+0.1),na.rm=TRUE),
-                       GriSaturationSo=mean(log(GriSaturationSo+0.1),na.rm=TRUE),
-                       XrdClayKaolinite=mean(log(XrdClayKaolinite+1),na.rm=TRUE),
-                       Toc=mean(log(Toc+0.1),na.rm=TRUE),
-                       S1=mean(log(S1+0.1),na.rm=TRUE),
-                       GriSaturationSg=mean(log(GriSaturationSg+0.1),na.rm=TRUE),
-                       NormalizedOil=mean(log(NormalizedOil+0.1),na.rm=TRUE),
-                       GriGrainDensity=mean(log(GriGrainDensity+0.1),na.rm=TRUE),
-                       XrdDolomite=mean(log(XrdDolomite+0.1),na.rm=TRUE),
-                       CsgThoriumApi=mean(log(CsgThoriumApi+0.1),na.rm=TRUE),
-                       XrdPlagioclase=mean(log(XrdPlagioclase+0.1),na.rm=TRUE),
-                       StaticYoungsModulus=mean(log(StaticYoungsModulus+0.1),na.rm=TRUE),
-                       GriTotalPorosity=mean(log(GriTotalPorosity+0.1),na.rm=TRUE),
-                       GriGasFilledPorosity=mean(log(GriGasFilledPorosity+0.1),na.rm=TRUE),
-                       GriBulkDensity=mean(log(GriBulkDensity+0.1),na.rm=TRUE),
-                       GriTypeParameter=mean(log(GriTypeParameter+0.1),na.rm=TRUE),
-                       XrdMarcasite=mean(log(XrdMarcasite+0.1),na.rm=TRUE),
-                       GriMatrixPermeabilityAbsolute=mean(log(GriMatrixPermeabilityAbsolute+0.1),na.rm=TRUE))
-
-
 
 Sumnewdata3<-dplyr::summarise(newdata3,
                               S2=mean(S2,na.rm=TRUE),
@@ -73,18 +45,6 @@ Sumnewdata3<-dplyr::summarise(newdata3,
 
 
 
-
-
-sumnewdata4<-dplyr::summarise(newdata4,
-                       ConfiningStressDynamic=mean(log(ConfiningStressDynamic+0.1),na.rm=TRUE),
-                       PoissonRatioDynamic=mean(log(PoissonRatioDynamic+0.1),na.rm=TRUE),
-                       BulkDensityDynamic=mean(log(BulkDensityDynamic+0.1),na.rm=TRUE),
-                       ShearVelocityDynamic=mean(log(ShearVelocityDynamic+0.1),na.rm=TRUE))
-
-
-
-
-
 Sumnewdata4<-dplyr::summarise(newdata4,
                               ConfiningStressDynamic=mean(ConfiningStressDynamic,na.rm=TRUE),
                               PoissonRatioDynamic=mean(PoissonRatioDynamic,na.rm=TRUE),
@@ -93,7 +53,6 @@ Sumnewdata4<-dplyr::summarise(newdata4,
 
 
 
-sumnewdata<-dplyr::full_join(sumnewdata3,sumnewdata4,by=c('UWI','latitude','longitude'))
 
 sumnewdata<-dplyr::full_join(Sumnewdata3,Sumnewdata4,by=c('UWI','latitude','longitude'))
 
@@ -108,41 +67,41 @@ sumnewdata$latitude <- coordinates(cord1.UTM)[,2]
 ####Check the trend#################
 
 
-hhh<-!is.na(sumnewdata$Tmax)
-plot(sumnewdata[hhh,]$longitude,sumnewdata[hhh,]$latitude)
+#hhh<-!is.na(sumnewdata$Tmax)
+#plot(sumnewdata[hhh,]$longitude,sumnewdata[hhh,]$latitude)
 
-akima.li<-interp(x=sumnewdata[hhh,]$longitude,y=sumnewdata[hhh,]$latitude,z=sumnewdata[hhh,]$Tmax,linear=FALSE,duplicate = "median")
+#akima.li<-interp(x=sumnewdata[hhh,]$longitude,y=sumnewdata[hhh,]$latitude,z=sumnewdata[hhh,]$Tmax,linear=FALSE,duplicate = "median")
 
 
-test<-matrix(0,1600,3)
-{
-  test[,1]<-rep(akima.li$x,40)
-  test[,2]<-rep(akima.li$y,each=40)
-  test[,3]<-as.vector(akima.li$z)
-}
-test<-as.data.frame(test)
-names(test)[1:3]<-c("longitude","latitude",'Tmax')
+#test<-matrix(0,1600,3)
+#{
+#  test[,1]<-rep(akima.li$x,40)
+##  test[,2]<-rep(akima.li$y,each=40)
+#  test[,3]<-as.vector(akima.li$z)
+#}
+#test<-as.data.frame(test)
+#names(test)[1:3]<-c("longitude","latitude",'Tmax')
 
-ggplot(data=test,aes(x=longitude,y=latitude,z=Tmax))+geom_tile(aes(fill =Tmax))+ 
-  scale_fill_gradient(low = "white", high = "red")+
-  stat_contour(size=1,aes(colour=..level..))+geom_point(data=sumnewdata[hhh,],aes(x=longitude,y=latitude,colour=Tmax),size=8)+ 
-  scale_colour_gradient(low = "white", high = "blue")
+#ggplot(data=test,aes(x=longitude,y=latitude,z=Tmax))+geom_tile(aes(fill =Tmax))+ 
+#  scale_fill_gradient(low = "white", high = "red")+
+#  stat_contour(size=1,aes(colour=..level..))+geom_point(data=sumnewdata[hhh,],aes(x=longitude,y=latitude,colour=Tmax),size=8)+ 
+#  scale_colour_gradient(low = "white", high = "blue")
 
 
 
 ##Variogram check
-hhh<-!is.na(sumnewdata$Tmax)
+#hhh<-!is.na(sumnewdata$Tmax)
 
-lookb=variog(coords=sumnewdata[hhh,2:3],data=sumnewdata[hhh,]$Tmax,max.dist=max(dist(sumnewdata[,2:3]))*0.9,trend='2nd')
-lookc=variog(coords=sumnewdata[hhh,2:3],data=sumnewdata[hhh,]$Tmax,op='cloud',max.dist=max(dist(sumnewdata[,2:3]))*0.9,trend='2nd')
-lookbc=variog(coords=sumnewdata[hhh,2:3],data=sumnewdata[hhh,]$Tmax,bin.cloud=TRUE,max.dist=max(dist(sumnewdata[,2:3]))*0.9,trend='2nd')
-looks=variog(coords=sumnewdata[hhh,2:3],data=sumnewdata[hhh,]$Tmax,op='sm',band=8000,max.dist=max(dist(sumnewdata[,2:3]))*0.9,trend='2nd')
+#lookb=variog(coords=sumnewdata[hhh,2:3],data=sumnewdata[hhh,]$Tmax,max.dist=max(dist(sumnewdata[,2:3]))*0.9,trend='2nd')
+#lookc=variog(coords=sumnewdata[hhh,2:3],data=sumnewdata[hhh,]$Tmax,op='cloud',max.dist=max(dist(sumnewdata[,2:3]))*0.9,trend='2nd')
+#lookbc=variog(coords=sumnewdata[hhh,2:3],data=sumnewdata[hhh,]$Tmax,bin.cloud=TRUE,max.dist=max(dist(sumnewdata[,2:3]))*0.9,trend='2nd'estimator.type = "modulus")
+#looks=variog(coords=sumnewdata[hhh,2:3],data=sumnewdata[hhh,]$Tmax,op='sm',band=50000,max.dist=max(dist(sumnewdata[,2:3]))*0.9,trend='2nd')
 
-par(mfrow=c(2,2))
-plot(lookb, main="binned variogram") 
-plot(lookc, main="variogram cloud")
-plot(lookbc, bin.cloud=TRUE, main="clouds for binned variogram")  
-plot(looks, main="smoothed variogram",ylim=c(0,0.0025)) 
+#par(mfrow=c(2,2))
+#plot(lookb, main="binned variogram") 
+#plot(lookc, main="variogram cloud")
+#plot(lookbc, bin.cloud=TRUE, main="clouds for binned variogram")  
+#plot(looks, main="smoothed variogram",ylim=c(0,1000)) 
 
 
 #look4=variog4(coords=sumnewdata[hhh,2:3],data=resid)
@@ -157,6 +116,11 @@ varr<-names(sumnewdata)[i+3]
 goodname<-paste('Krig',varr,sep='') 
 hhh<-!is.na(sumnewdata[,i+3])
 lookb=variog(coords=sumnewdata[hhh,c(3,2)],data=sumnewdata[hhh,i+3],trend='2nd')
+#lookc=variog(coords=sumnewdata[hhh,c(3,2)],data=sumnewdata[hhh,i+3],trend='2nd',op='cloud')
+#lookbc=variog(coords=sumnewdata[hhh,c(3,2)],data=sumnewdata[hhh,i+3],trend='2nd',bin.cloud=TRUE,estimator.type = "modulus")
+#plot(lookc, main='Variogram cloud plot of Tmax',xlab='distance',ylab='variogram')
+#plot(lookbc, bin.cloud=TRUE, main="Binned variogram plot of Tmax",ylab='variogram',ylim=c(0,1000))  
+plot(lookb)
 covpar<-variofit(lookb,kappa=0.5)
 if(covpar$cov.pars[2]==0) 
 {covpar$cov.pars[2]=0.01}
@@ -176,27 +140,10 @@ for (i in 1:29)
 }
 
 
-
-
-for (i in c(1:29))
-{
-  newabc[,i+5]=exp(newabc[,i+5])-0.1
-}
-
-
 ##Easier way to plot####
-set.panel()
-surface(KrigTmax, type="C",xlab='X',ylab='Y',main='Kriging results for Tmax') # look at the surface 
-points(KrigTmax$x)
-
-
-
-
-#library(maps)
-#library(mapdata)
-#library(mapproj)
-
-#map(database= "county", ylim=c(45,90), xlim=c(-160,-50), col="grey80", fill=TRUE,add=TRUE)
+#set.panel()
+#surface(KrigTmax, type="C",xlab='X',ylab='Y',main='Kriging results for Tmax') # look at the surface 
+#points(KrigTmax$x)
 
 newabc$Longitude <- coordinates(cord2.dec)[,1]
 newabc$Latitude <- coordinates(cord2.dec)[,2]
@@ -214,96 +161,44 @@ write.csv(newabc,file='Interpolation for top 29 variables for production well(no
 
 
 #Loess for 29 variables
+
 
 for (i in 1:29)
 {
   varr<-names(sumnewdata)[i+3]  
   goodname<-paste('Loess',varr,sep='')  
-  assign(goodname,loess(get(varr)~latitude*longitude, data=sumnewdata,degree=1, span=0.5, normalize=F,control=loess.control(surface = "direct")))
+  assign(goodname,loess(get(varr)~latitude*longitude, data=sumnewdata,degree=2, span=2.0, normalize=F,control=loess.control(surface = "direct")))
 }
-
 
 ##Prediction for production well
 
-newabc<-abc
+Newabc<-abc
 for (i in 1:29)
 {
   varr<-names(sumnewdata)[i+3]
   prename<-paste('Loess',varr,sep='') 
-  newabc<-cbind(newabc,predict(get(prename),as.matrix(abc[,3:4])))
-  names(newabc)[i+5]<-varr
+  Newabc<-cbind(Newabc,predict(get(prename),as.matrix(abc[,3:4])))
+  names(Newabc)[i+5]<-varr
 }
 
 
 
-for (i in c(1:29))
-{
-  newabc[,i+5]=exp(newabc[,i+5])-0.1
-}
+#Grid<-expand.grid(x=seq(from=min(sumnewdata$latitude),to=max(sumnewdata$latitude),length.out=50),y=seq(from=min(sumnewdata$longitude),to=max(sumnewdata$longitude),length.out=50))
+#names(Grid)=c('latitude','longitude')
+
+#hhh<-(Grid[,1]<Grid[,2]*0.73+2910000)&(Grid[,1]>Grid[,2]*0.73+2721500)
+
+#TToc<-predict(LoessToc,as.matrix(Grid[hhh,]))
+#M<-cbind(Grid[hhh,],TToc)
+#jet.colors <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan", "#7FFF7F", "yellow", "#FF7F00", "red", "#7F0000"))
+#ggplot(M, aes(x=longitude, y=latitude,z=TToc)) + geom_tile(aes(fill = TToc)) + scale_fill_gradientn(colours = jet.colors(7))+stat_contour()+theme_bw()
 
 
-
-newabc$Longitude <- coordinates(cord2.dec)[,1]
-newabc$Latitude <- coordinates(cord2.dec)[,2]
+Newabc$Longitude <- coordinates(cord2.dec)[,1]
+Newabc$Latitude <- coordinates(cord2.dec)[,2]
 
 
 write.csv(newabc,file='Interpolation for top 29 variables for production well(no truncation).csv')
-
-
-
-
-
-##ggplot2
-
-#@@Test Data for drawing kriging heatmap
-testdata<-matrix(0,14400,2)
-testdata[,1]<-rep(seq(from=min(sumnewdata$latitude),to=max(sumnewdata$latitude),length=120),each=120)
-testdata[,2]<-rep(seq(from=min(sumnewdata$longitude),to=max(sumnewdata$longitude),length=120),120)
-
-test<-as.data.frame(testdata)
-
-for (i in 1:29)
-{
-  varr<-names(sumnewdata)[i+3]
-  prename<-paste('Krig',varr,sep='') 
-  test<-cbind(test,predict(get(prename),testdata))
-  names(test)[i+2]<-varr  
-}
-
-for (i in c(1:29))
-{
-  test[,i+2]=exp(test[,i+2])-0.1
-}
-
-
-
-names(test)[1:2]<-c("Latitude","Longitude")
-
-
-op<-par(ask=TRUE)
-
-for (num in 1:29)
-
-{
-  varr<-names(test)[num+2]
-  p<-ggplot(data=test,aes(x=Longitude,y=Latitude,z=get(varr)))+geom_tile(aes(fill =get(varr)))+ 
-    scale_fill_gradient(low = "white", high = "red")+
-  stat_contour(size=1,aes(colour=..level..))+geom_point(data=sumnewdata,aes(x=longitude,y=latitude,colour=get(varr)),size=8)+ 
-  scale_colour_gradient(low = "white", high = "blue")+
-    ggtitle(varr)
-  
-  plot(p)
-  
-}
-
-
-
-par(op)
-
-
-
-
-
 
 
 #================================================================================================================================
@@ -350,7 +245,14 @@ boost5 <- runboostRegCV(dat=newabcY,  no.tree=5000, k=5)
 predboost5<-boost5[[2]]
 
 
-
+mmm<-rep(0,25)
+for (i in 1:25)
+{
+  print(i)
+  M<- runboostRegCV(dat=newabcY,  no.tree=5000, k=5)
+  print(M[[1]])
+  mmm[i]<-M[[1]][3]
+}
 
 
 
@@ -412,18 +314,24 @@ set.seed(666)
 rf <- runRFRegCV(dat=newabcY,  m=12, no.tree=1000, k=5)
 predRF<- rf[[2]] 
 
-
+mmm<-rep(0,25)
+for (i in 1:25)
+{
+  print(i)
+  M<-runRFRegCV(dat=newabcY,  m=12, no.tree=1000, k=5)
+  print(M[[1]])
+  mmm[i]<-M[[1]][3]
+}
 
 
 fitControl <- trainControl(## 5-fold CV
-  method = "repeatedcv",
-  number = 5,
-  repeats=2)
+  method = "cv",
+  number = 5)
 
 rfGrid <- expand.grid(mtry=12)
 
 
-rfFit <- train(Target ~ ., data = newabcY[,5:35],
+rfFit <- train(Target ~ ., data = newabcY[,3:35],
                  method = "rf",
                  trControl = fitControl,
                  tuneGrid=rfGrid,
@@ -458,7 +366,7 @@ dat$Latitude <- coordinates(cord1.UTM)[,2]
     # Predict test dataset and calculate mse
     
     lookb=variog(coords=train[,c(4,3)],data=train[,35],trend='2nd')
-    #lookbc=variog(coords=train[,c(4,3)],data=train[,35],trend='2nd',bin.cloud=TRUE)
+    #lookbc=variog(coords=train[,c(4,3)],data=train[,35],trend='2nd',bin.cloud=TRUE,estimator.type = "modulus")
     #par(mfrow=c(2,2))
     #plot(lookb, main="binned variogram") 
     #plot(lookbc, bin.cloud=TRUE, main="clouds for binned variogram")  
@@ -482,6 +390,17 @@ set.seed(897)
 Kri <- runKriCV(dat=newabcY, k=5)
 predKri<- Kri[[2]] 
 
+mmm<-rep(0,25)
+for (i in 1:25)
+{
+  print(i)
+  M<-runKriCV(dat=newabcY, k=5)
+  print(M[[1]])
+  mmm[i]<-M[[1]][3]
+}
+
+#RMSE  5.85(0.37)
+
 
 
 ###New method########
@@ -494,13 +413,13 @@ newGrid <- expand.grid(C=c(10,20,5,1),sigma=0.2)
 
 
 
-newFit <- train(Target ~ ., data = newabcY[,5:35],
+newFit <- train(Target ~ ., data = newabcY[,3:35],
                 method = "svmRadial",
                 tuneGrid=newGrid,
                 trControl = fitControl)
 
 
-runRegSVMCV <- function(dat, k){
+runRegSVMCV <- function(dat, k, gamma, epsilon, cost){
   
   folds <- cvFolds(nrow(dat), K=k)
   mse <- NULL;  pred <- NULL; sol <- NULL;
@@ -510,12 +429,12 @@ runRegSVMCV <- function(dat, k){
     
     test  <- dat[folds$subsets[folds$which==i],]
     train <- dplyr::setdiff(dat, test)
-    model <- svm(Target~., train[,5:35])  
+    model <- svm(Target~., train[,3:35],cost=cost,gamma=gamma,epsilon=epsilon)  
     
     #####################################################################################################
     
     # Predict test dataset and calculate mse
-    test.pred <- cbind(test[,c(2,35)], Pred=predict(model,newdata=test[,5:34]), test[,c(36,37)])  # Uwi, Target, Pred, Latitude, Longitude
+    test.pred <- cbind(test[,c(2,35)], Pred=predict(model,newdata=test[,3:34]), test[,c(36,37)])  # Uwi, Target, Pred, Latitude, Longitude
     mse <- c(mse, sum((test.pred[,2]-test.pred[,3])^2)/nrow(test.pred))
     pred <- rbind(pred, test.pred)  # save prediction results for fold i
   }
@@ -524,12 +443,19 @@ runRegSVMCV <- function(dat, k){
   return(list(sol, pred))
 }
 set.seed(897)
-svm <- runRegSVMCV(dat=newabcY, k=5)
-predsvm<- svm[[2]] 
+Svm <- runRegSVMCV(dat=newabcY, k=5, cost=1, gamma=0.01, epsilon=0.1)
+predsvm<- Svm[[2]] 
 
-tuneResult <- tune(svm, Target~.,  data = train[,5:35],
-                   ranges = list(epsilon = seq(0,1,0.1), cost = 2^(2:9))
-)
+for (i in 1:20)
+{
+  Svm <- runRegSVMCV(dat=newabcY, k=5, cost=10, gamma=0.2, epsilon=i*0.01) 
+  print(i)
+  print(Svm[[1]])
+}
+
+
+
+
 
 
 
