@@ -61,7 +61,7 @@ cord1.dec = SpatialPoints(cbind(sumnewdata$longitude, sumnewdata$latitude), proj
 cord1.UTM <- spTransform(cord1.dec, CRS("+proj=utm +north +zone=14"))
 sumnewdata$longitude <- coordinates(cord1.UTM)[,1]
 sumnewdata$latitude <- coordinates(cord1.UTM)[,2]
-
+sumnewdata<-as.data.frame(sumnewdata)
 
 
 ####Check the trend#################
@@ -115,16 +115,16 @@ for (i in 1:29)
 varr<-names(sumnewdata)[i+3]  
 goodname<-paste('Krig',varr,sep='') 
 hhh<-!is.na(sumnewdata[,i+3])
-lookb=variog(coords=sumnewdata[hhh,c(3,2)],data=sumnewdata[hhh,i+3],trend='2nd')
+lookb=variog(coords=sumnewdata[hhh,c(3,2)],data=sumnewdata[hhh,i+3],trend='1st')
 #lookc=variog(coords=sumnewdata[hhh,c(3,2)],data=sumnewdata[hhh,i+3],trend='2nd',op='cloud')
 #lookbc=variog(coords=sumnewdata[hhh,c(3,2)],data=sumnewdata[hhh,i+3],trend='2nd',bin.cloud=TRUE,estimator.type = "modulus")
 #plot(lookc, main='Variogram cloud plot of Tmax',xlab='distance',ylab='variogram')
 #plot(lookbc, bin.cloud=TRUE, main="Binned variogram plot of Tmax",ylab='variogram',ylim=c(0,1000))  
-plot(lookb)
+#plot(lookb)
 covpar<-variofit(lookb,kappa=0.5)
 if(covpar$cov.pars[2]==0) 
 {covpar$cov.pars[2]=0.01}
-assign(goodname,Krig(x=sumnewdata[,c(3,2)], Y=sumnewdata[,i+3],theta=covpar$cov.pars[2],m=3))
+assign(goodname,Krig(x=sumnewdata[,c(3,2)], Y=sumnewdata[,i+3],theta=covpar$cov.pars[2],m=2))
 }
 
 
@@ -201,6 +201,75 @@ Newabc$Latitude <- coordinates(cord2.dec)[,2]
 write.csv(newabc,file='Interpolation for top 29 variables for production well(no truncation).csv')
 
 
+
+
+######Cross validation for Kriging and LOESS
+
+
+#KrigingCV<- function(dat,d)
+#{
+ # hhh<-!is.na(dat[,d+3])
+#  dat<-dat[hhh,]
+#  n<-nrow(dat)
+##  folds <- cvFolds(n, K=n)
+#  mse <- NULL;  pred <- NULL; sol <- NULL;
+#  for(i in 1:n){  
+#    # Split data into train/test set
+#    test  <- dat[folds$subsets[folds$which==i],]
+#    train <- dplyr::setdiff(dat, test)
+  
+#    lookb=variog(coords=train[,c(3,2)],data=train[,(d+3)],trend='1st')
+#    covpar<-variofit(lookb,kappa=0.5)
+#    if(covpar$cov.pars[2]==0) 
+#    {covpar$cov.pars[2]=0.01}
+#    model <- Krig(x=train[,c(3,2)],Y=train[,(d+3)],theta=covpar$cov.pars[2],m=2) 
+#    test.pred <- cbind(test[,c(1,(d+3))], Pred=predict(model,as.matrix(test[,c(3,2)]))) 
+     # Uwi, Target, Pred, Latitude, Longitude
+#    mse <- c(mse, sum((test.pred[,2]-test.pred[,3])^2)/nrow(test.pred))
+#    pred <- rbind(pred, test.pred)  # save prediction results for fold i
+#  }
+  # CV results
+  #sol <- data.frame(Name=names(train)[d+3],mse=mean(mse), rmse=sqrt(mean(mse)))
+  #return(list(sol, pred))
+#}
+
+#Kriging <- KrigingCV(dat=sumnewdata,  d=5)
+
+
+
+
+
+#LoessCV<- function(dat,d,span)
+#{
+#  hhh<-!is.na(dat[,d+3])
+#  dat<-dat[hhh,]
+#  n<-nrow(dat)
+#  folds <- cvFolds(n, K=n)
+#  varr<-names(sumnewdata)[d+3]  
+#  mse <- NULL;  pred <- NULL; sol <- NULL;
+#  for(i in 1:n){  
+    # Split data into train/test set
+ #   test  <- dat[folds$subsets[folds$which==i],]
+  #  train <- dplyr::setdiff(dat, test)
+   # model <- loess(get(varr)~longitude*latitude, data=train,degree=2, span=span, normalize=F,control=loess.control(surface = "direct"))
+    #test.pred <- cbind(test[,c(1,(d+3))], Pred=predict(model,as.matrix(test[,c(3,2)]))) 
+    # Uwi, Target, Pred, Latitude, Longitude
+    #mse <- c(mse, sum((test.pred[,2]-test.pred[,3])^2)/nrow(test.pred))
+    #pred <- rbind(pred, test.pred)  # save prediction results for fold i
+  #}
+  # CV results
+  #sol <- data.frame(Name=names(train)[d+3],mse=mean(mse), rmse=sqrt(mean(mse)))
+  #return(list(sol, pred))
+#}
+
+#Loess<-LoessCV(dat=sumnewdata,d=1, span=0.1)
+
+#for (t in 1:100)
+#{print(t*0.1)
+#print(LoessCV(dat=sumnewdata,d=5, span=t*0.1)[[1]])
+#}
+
+
 #================================================================================================================================
 # Tree, RandomForest and Boosting Algorithm ###(my data)
 #================================================================================================================================
@@ -213,6 +282,7 @@ newabcY<-dplyr::arrange(newabcY,Uwi)
 
 write.csv(newabcY,file='Data preparing for Machine learning.csv')
 
+#ggscatmat(newabcY,columns=c(28:34,35))
 
 ##boosting
 
@@ -241,7 +311,7 @@ runboostRegCV<- function(dat, no.tree, k)
   return(list(sol, pred))
 }
 #@@ 5-fold CV
-boost5 <- runboostRegCV(dat=newabcY,  no.tree=5000, k=5)
+boost5 <- runboostRegCV(dat=newabcY,  no.tree=5500, k=5)
 predboost5<-boost5[[2]]
 
 
@@ -249,19 +319,20 @@ mmm<-rep(0,25)
 for (i in 1:25)
 {
   print(i)
-  M<- runboostRegCV(dat=newabcY,  no.tree=5000, k=5)
+  M<- runboostRegCV(dat=newabcY,  no.tree=5500, k=5)
   print(M[[1]])
   mmm[i]<-M[[1]][3]
 }
 
-
+#MSE 28.04(0.31)
+#RMSE 5.295(0.029)
 
 
 fitControl <- trainControl(## 5-fold CV
   method = "cv",
   number = 5)
 
-gbmGrid <- expand.grid(interaction.depth=c(4),n.trees = 5000, shrinkage=(c(1))*0.01, n.minobsinnode=10)
+gbmGrid <- expand.grid(interaction.depth=c(4),n.trees = 5500, shrinkage=(c(1))*0.01, n.minobsinnode=10)
 
 
 
@@ -274,7 +345,22 @@ gbmFit <- train(Target ~ ., data = newabcY[,3:35],
 
 
 
+mmm<-rep(0,25)
+for (i in 1:25)
+{
+  print(i)
+  M<- train(Target ~ ., data = newabcY[,3:35],
+            method = "gbm",
+            trControl = fitControl,
+            tuneGrid=gbmGrid,
+            verbose = FALSE)
+  print(M$results)
+  mmm[i]<-M$results[5]
+}
 
+
+#MSE 28.12(0.330)
+#RMSE 5.302(0.031)
 
 
 
@@ -324,6 +410,10 @@ for (i in 1:25)
 }
 
 
+#MSE 26.70(0.412)
+#RMSE 5.168(0.040)
+
+
 fitControl <- trainControl(## 5-fold CV
   method = "cv",
   number = 5)
@@ -335,11 +425,26 @@ rfFit <- train(Target ~ ., data = newabcY[,3:35],
                  method = "rf",
                  trControl = fitControl,
                  tuneGrid=rfGrid,
+                 ntree=1000,
                  verbose = FALSE)
 
-predict(rfFit,newabcY[,3:35])
+mmm<-rep(0,25)
+for (i in 1:25)
+{
+  print(i)
+  M<- train(Target ~ ., data = newabcY[,3:35],
+            method = "rf",
+            trControl = fitControl,
+            tuneGrid=rfGrid,
+            ntree=1000,
+            verbose = FALSE)
+  print(M$results)
+  mmm[i]<-M$results[2]
+}
 
 
+#MSE 26.59(0.395)
+#RMSE 5.157(0.038)
 
 #####Direct Kriging##################
 
@@ -403,7 +508,7 @@ for (i in 1:25)
 
 
 
-###New method########
+###support vector regression########
 
 fitControl <- trainControl(## 5-fold CV
   method = "cv",
@@ -415,11 +520,11 @@ newGrid <- expand.grid(C=c(10,20,5,1),sigma=0.2)
 
 newFit <- train(Target ~ ., data = newabcY[,3:35],
                 method = "svmRadial",
-                tuneGrid=newGrid,
+                #tuneGrid=newGrid,
                 trControl = fitControl)
 
 
-runRegSVMCV <- function(dat, k, gamma, epsilon, cost){
+runRegSVMCV <- function(dat, k, gamma, epsilon, cost,nu){
   
   folds <- cvFolds(nrow(dat), K=k)
   mse <- NULL;  pred <- NULL; sol <- NULL;
@@ -429,7 +534,7 @@ runRegSVMCV <- function(dat, k, gamma, epsilon, cost){
     
     test  <- dat[folds$subsets[folds$which==i],]
     train <- dplyr::setdiff(dat, test)
-    model <- svm(Target~., train[,3:35],cost=cost,gamma=gamma,epsilon=epsilon)  
+    model <- svm(Target~., train[,3:35],cost=cost,gamma=gamma,epsilon=epsilon,type='nu-regression',nu=nu)  
     
     #####################################################################################################
     
@@ -443,21 +548,96 @@ runRegSVMCV <- function(dat, k, gamma, epsilon, cost){
   return(list(sol, pred))
 }
 set.seed(897)
-Svm <- runRegSVMCV(dat=newabcY, k=5, cost=1, gamma=0.01, epsilon=0.1)
+Svm <- runRegSVMCV(dat=newabcY, k=5, cost=18, gamma=0.26, epsilon=0.36,nu=nu)
 predsvm<- Svm[[2]] 
 
-for (i in 1:20)
+
+
+mmm<-rep(0,25)
+
+for (i in 1:50)
 {
-  Svm <- runRegSVMCV(dat=newabcY, k=5, cost=10, gamma=0.2, epsilon=i*0.01) 
+  Svm <- runRegSVMCV(dat=newabcY, k=5, cost=14, gamma=0.38, epsilon=0.14,nu=0.36) 
   print(i)
   print(Svm[[1]])
+  mmm[i]<-Svm[[1]][3]
 }
 
 
+#MSE 30.30(0.449)
+#RMSE 5.505(0.041)
 
 
 
 
+
+
+
+
+########Neural network#################################
+
+runRegneuralCV <- function(dat, k, hidden, epochs){
+  
+  folds <- cvFolds(nrow(dat), K=k)
+  mse <- NULL;  pred <- NULL; sol <- NULL;
+  
+  for(i in 1:k){  
+    # Split data into train/test set
+    localH2O <- h2o.init()
+    test  <- dat[folds$subsets[folds$which==i],]
+    true  <- test[,35]
+    train <- dplyr::setdiff(dat, test)
+    train <- as.h2o(train[,3:35],conn=localH2O)
+    test  <- as.h2o(test[,3:34],conn=localH2O)
+    model <- h2o.deeplearning(x=1:32, y=33, training_frame=train,activation = "TanhWithDropout",# or 'Tanh'
+                              #input_dropout_ratio = 0.2, # % of inputs dropout
+                              #hidden_dropout_ratios = c(0.5,0.5,0.5,0.5,0.5), # % for nodes dropout
+                              #balance_classes = TRUE, 
+                              hidden = hidden, # three layers of 50 nodes
+                              epochs = epochs) # max. no. of epochs)  
+    
+    #####################################################################################################
+    
+    # Predict test dataset and calculate mse
+    test.pred <- cbind(true, Pred=as.matrix(predict(model,newdata=test)))  # Uwi, Target, Pred, Latitude, Longitude
+    mse <- c(mse, sum((test.pred[,1]-test.pred[,2])^2)/nrow(test.pred))
+    pred <- rbind(pred, test.pred)  # save prediction results for fold i
+  }
+  # CV results
+  sol <- data.frame(K=k,mse=mean(mse), rmse=sqrt(mean(mse)))
+  return(list(sol, pred))
+}
+
+set.seed(897)
+Neural <- runRegneuralCV(dat=newabcY, k=5, hidden=50, epochs=100)
+predneural<- Neural[[2]] 
+
+
+mmm<-rep(0,25)
+
+for (i in 1:25)
+{
+  Neural <- runRegneuralCV(dat=newabcY, k=5, hidden=c(200,80), epochs=20) 
+  print(i)
+  print(Neural[[1]])
+  mmm[i]<-Neural[[1]][3]
+}
+
+
+#MSE 30.30(0.449)
+#RMSE 5.505(0.041)
+
+
+model <- 
+  h2o.deeplearning(x = 2:785,  # column numbers for predictors
+                   y = 1,   # column number for label
+                   data = train_h2o, # data in H2O format
+                   activation = "TanhWithDropout", # or 'Tanh'
+                   input_dropout_ratio = 0.2, # % of inputs dropout
+                   hidden_dropout_ratios = c(0.5,0.5,0.5), # % for nodes dropout
+                   balance_classes = TRUE, 
+                   hidden = c(50,50,50), # three layers of 50 nodes
+                   epochs = 100) # max. no. of epochs
 
 
 #-------------------------------------------------------------------------------------------------------------------------
@@ -578,14 +758,26 @@ runboostRegCV<- function(dat, no.tree, k)
 }
 #@@ 5-fold CV
 set.seed(666)
-
 boost5 <- runboostRegCV(dat=newbbcY,  no.tree=5000, k=5)
 
 
 predboost5<-boost5[[2]]
 
 
-`
+
+mmm<-rep(0,25)
+for (i in 1:25)
+{
+  print(i)
+  M<- runboostRegCV(dat=newbbcY,  no.tree=5500, k=5)
+  print(M[[1]])
+  mmm[i]<-M[[1]][3]
+}
+
+
+#MSE 27.80(0.42)
+#RMSE 5.273(0.040)
+
 
 
 
@@ -622,6 +814,20 @@ runRFRegCV <- function(dat, m, no.tree, k ,ntrace=500){
 set.seed(666)
 rf <- runRFRegCV(dat=newbbcY,  m=12, no.tree=1000, k=5)
 predRF<- rf[[2]] 
+
+
+mmm<-rep(0,25)
+for (i in 1:25)
+{
+  print(i)
+  M<-runRFRegCV(dat=newbbcY,  m=12, no.tree=1000, k=5)
+  print(M[[1]])
+  mmm[i]<-M[[1]][3]
+}
+
+
+#MSE 26.53(0.520)
+#RMSE 5.150(0.050)
 
 
 #-------------------------------------------------------------------------------------------------------------------------

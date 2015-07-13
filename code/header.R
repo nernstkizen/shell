@@ -20,13 +20,16 @@ library(rgdal)
 library(geoR)
 library(fields)
 library(ggplot2)
-library(directlabels)
 library(randomForest)
 library(gbm)
+library(nnet)
+library(e1071)
+library(h2o)
 library(cvTools)
 library(caret)
 library(akima)
 library(stats)
+library(GGally)
 #---------------------------------------------------------------------------------------------------------------------
 ### Project folder path
 #---------------------------------------------------------------------------------------------------------------------
