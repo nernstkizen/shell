@@ -62,50 +62,52 @@ sumnewdata$NormalizedOil[77]<-NA
 
 
 ########Heat map##################
-#idw<-function(z,distance,k,num.neighs)
-#{
-#  idw.z<-rep(0,length(distance[,1]))
-#  for (i in 1:length(distance[,1]))
-#  {
-#    d<-sort(distance[i,],index.return=TRUE)
-#    w<-1/d$x[1:num.neighs]^k
-#    idw.z[i]<-sum(z[d$ix[1:num.neighs]]*w)/sum(w)
-#  }
-#  return(idw.z)
-#}  
+idw<-function(z,distance,k,num.neighs)
+{
+  idw.z<-rep(0,length(distance[,1]))
+  for (i in 1:length(distance[,1]))
+  {
+    d<-sort(distance[i,],index.return=TRUE)
+    w<-1/d$x[1:num.neighs]^k
+    idw.z[i]<-sum(z[d$ix[1:num.neighs]]*w)/sum(w)
+  }
+  return(idw.z)
+}  
 
-#aq.ch<-chull(sumnewdata$longitude,sumnewdata$latitude)
-#aq.ch<-c(aq.ch,aq.ch[1])
-#aq.border<-cbind(sumnewdata$longitude[aq.ch],sumnewdata$latitude[aq.ch])
+aq.ch<-chull(sumnewdata$longitude,sumnewdata$latitude)
+aq.ch<-c(aq.ch,aq.ch[1])
+aq.border<-cbind(sumnewdata$longitude[aq.ch],sumnewdata$latitude[aq.ch])
 
-#aq.bbox<-sbox(as.points(sumnewdata$longitude,sumnewdata$latitude))
-#aq.grid<-gridpts(aq.bbox,npts=80000)
-#aq.grx<-unique(aq.grid[,1])
-#aq.gry<-unique(aq.grid[,2])
-#inside<-inout(aq.grid,aq.border,bound=TRUE)
-#aq.Grid<-aq.grid[inside,]
-#distmat<-rdist(aq.Grid,cbind(sumnewdata$longitude,sumnewdata$latitude))
+aq.bbox<-sbox(as.points(sumnewdata$longitude,sumnewdata$latitude))
+aq.grid<-gridpts(aq.bbox,npts=80000)
+aq.grx<-unique(aq.grid[,1])
+aq.gry<-unique(aq.grid[,2])
+inside<-inout(aq.grid,aq.border,bound=TRUE)
+aq.Grid<-aq.grid[inside,]
 
-#m<-sumnewdata$S3
-#SS3<-idw(m,distmat,2,50)
-#M<-cbind(aq.Grid,SS3)
-#M<-as.data.frame(M)
-#names(M)<-c('longitude','latitude','S3')
-#jet.colors <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan", "#7FFF7F", "yellow", "#FF7F00", "red", "#7F0000"))
-#all_states <- map_data("county")
+hhh<-!is.na(sumnewdata$Toc)
+distmat<-rdist(aq.Grid,cbind(sumnewdata$longitude[hhh],sumnewdata$latitude[hhh]))
+m<-sumnewdata$Toc[hhh]
+TToc<-idw(m,distmat,0.5,50)
+M<-cbind(aq.Grid,TToc)
+M<-as.data.frame(M)
+names(M)<-c('longitude','latitude','Toc')
+jet.colors <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan", "#7FFF7F", "yellow", "#FF7F00", "red", "#7F0000"))
+all_states <- map_data("county")
 #county <- subset(all_states, (long>=(-100.3))&(long<=(-96))&(lat>27.6)&(lat<31) )
-#county <- subset(all_states, (long>=(-101))&(long<=(-95))&(lat>27.6)&(lat<31.5) )
-#p <- ggplot() + geom_polygon( data=county, aes(x=long, y=lat, group = subregion),colour="grey", fill="white",size=1 )+
-#geom_tile(data = M, aes(x = longitude, y = latitude, fill = SS3),  alpha = 0.8)+scale_fill_gradientn(colours = jet.colors(7))+
-#stat_contour(data = M,aes( x = longitude, y = latitude, z = SS3 ))
+county <- subset(all_states, (long>=(-101))&(long<=(-95))&(lat>27.6)&(lat<31.5) )
+ggplot() + geom_polygon( data=county, aes(x=long, y=lat, group = subregion),colour="grey", fill="white",size=1 )+
+geom_tile(data = M, aes(x = longitude, y = latitude, fill = Toc),  alpha = 0.8)+scale_fill_gradientn(colours = jet.colors(7))#+
+#stat_contour(data = M,aes( x = longitude, y = latitude, z = GriTypeParameter ))
 
 
-
-#ggplot()+geom_point(data=sumnewdata, aes(x=longitude, y=latitude, colour =S3, size=S3))+scale_colour_gradientn(colours = jet.colors(7))
-#surface(KrigS3, type="C",xlab='X',ylab='Y',main='Kriging results for S3')
-#hhh<-is.na(sumnewdata$S3)
-#cbind(sumnewdata$S3[!hhh],KrigS3$fitted.values)
-#rmse(sumnewdata$S3[!hhh],KrigS3$fitted.values)/sd(sumnewdata$S3[!hhh])
+ggplot()+geom_point(data=sumnewdata, aes(x=longitude, y=latitude))
+ggplot()+geom_point(data=sumnewdata, aes(x=longitude, y=latitude, colour =GriTypeParameter, size=GriTypeParameter))+
+  scale_colour_gradientn(colours = jet.colors(7))
+surface(KrigCsgThoriumApi, type="C",xlab='X',ylab='Y',main='Kriging results for S3')
+hhh<-is.na(sumnewdata$CsgThoriumApi)
+cbind(sumnewdata$CsgThoriumApi[!hhh],KrigCsgThoriumApi$fitted.values)
+rmse(sumnewdata$CsgThoriumApi[!hhh],KrigCsgThoriumApi$fitted.values)/sd(sumnewdata$CsgThoriumApi[!hhh])
 
 #Change UTM coordinate system
 
@@ -129,7 +131,7 @@ lookb=variog(coords=sumnewdata[hhh,c(3,2)],data=sumnewdata[hhh,i+3],trend='2nd',
 #lookbc=variog(coords=sumnewdata[hhh,c(3,2)],data=sumnewdata[hhh,i+3],trend='2nd',bin.cloud=TRUE,estimator.type = "modulus",max.dist=max(dist(sumnewdata[hhh,2:3]))*0.8)
 #plot(lookc, main='Variogram cloud plot of Tmax',xlab='distance',ylab='variogram')
 #plot(lookbc, bin.cloud=TRUE, main="Binned variogram plot of Tmax",ylab='variogram',ylim=c(0,1000))  
-#plot(lookb)
+plot(lookb)
 covpar<-variofit(lookb)#,cov.model='matern',fix.kappa = FALSE)
 if(covpar$cov.pars[2]==0) 
 {covpar$cov.pars[2]=0.001}
@@ -138,7 +140,7 @@ if(covpar$cov.pars[2]==0)
 assign(goodname,Krig(x=sumnewdata[,c(3,2)], Y=sumnewdata[,i+3],theta=covpar$cov.pars[2],m=3))#,smoothness=covpar$kappa,Covariance="Matern"))
 }
 
-for (i in c(23))
+for (i in c(17,23))
 {
   varr<-names(sumnewdata)[i+3]  
   goodname<-paste('Krig',varr,sep='') 
@@ -157,7 +159,7 @@ for (i in c(23))
   assign(goodname,Krig(x=sumnewdata[,c(3,2)], Y=sumnewdata[,i+3],theta=covpar$cov.pars[2],m=2))#,smoothness=covpar$kappa,Covariance="Matern"))}
 }
 
-for (i in c(1,12,16,17,18))
+for (i in c(1,12,16,18))
 {
   varr<-names(sumnewdata)[i+3]  
   goodname<-paste('Krig',varr,sep='') 
@@ -192,18 +194,52 @@ for (i in 1:29)
 
 
 ##Easier way to plot####
-set.panel()
-surface(KrigS3, type="C",xlab='X',ylab='Y',main='Kriging results for S3') # look at the surface 
-points(KrigS3$x)
+#set.panel()
+#surface(KrigS2, type="C",xlab='X',ylab='Y',main='Kriging results for S3') # look at the surface 
+#points(KrigS3$x)
 
 newabc$Longitude <- coordinates(cord2.dec)[,1]
 newabc$Latitude <- coordinates(cord2.dec)[,2]
 
-
-
 write.csv(newabc,file='Interpolation for top 29 variables for production well(no truncation).csv')
 
 
+aq.ch<-chull(newabc$Longitude,newabc$Latitude)
+aq.ch<-c(aq.ch,aq.ch[1])
+aq.border<-cbind(newabc$Longitude[aq.ch],newabc$Latitude[aq.ch])
+
+aq.bbox<-sbox(as.points(newabc$Longitude,newabc$Latitude))
+aq.grid<-gridpts(aq.bbox,npts=45000)
+inside<-inout(aq.grid,aq.border,bound=TRUE)
+aq.Grid<-aq.grid[inside,]
+
+cord3.dec = SpatialPoints(aq.Grid, proj4string=CRS("+proj=longlat"))
+cord3.UTM <- spTransform(cord3.dec, CRS("+proj=utm +north +zone=14"))
+Aq.Grid<-coordinates(cord3.UTM)
+
+SS2<-predict(KrigS2,Aq.Grid)
+M<-cbind(aq.Grid,SS2)
+M<-as.data.frame(M)
+names(M)<-c('longitude','latitude','S2')
+M[,1:2]<-coordinates(cord3.dec)
+jet.colors <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan", "#7FFF7F", "yellow", "#FF7F00", "red", "#7F0000"))
+
+
+map<-get_map(location=c(left = -100.3, bottom = 27.7, right = -96.1, top = 31.2), zoom = 7, maptype='toner') 
+p<-ggmap(map, extent='normal')
+p+geom_tile(data = M, aes(x = longitude, y = latitude, z=S2, 
+                          fill = S2),  alpha = 0.8)+scale_fill_gradientn(colours = jet.colors(7))+
+  stat_contour(data = M,aes( x = longitude, y = latitude, z = S2 ))
+  
+
+all_states <- map_data("county")
+county <- subset(all_states, (long>=(-100.4))&(long<=(-96))&(lat>27.7)&(lat<31))
+A<-unique(county$subregion)
+county <- subset(all_states, (subregion %in% A) & (region=='texas'))
+p <- ggplot() + geom_polygon( data=county, aes(x=long, y=lat, group = group),colour="grey", fill="white",size=1)+
+  geom_tile(data = M, aes(x = longitude, y = latitude, 
+                          fill = S2),  alpha = 0.8)+scale_fill_gradientn(colours = jet.colors(7))+
+  stat_contour(data = M,aes( x = longitude, y = latitude, z = S2))
 
 
 ##############################################
@@ -218,7 +254,7 @@ for (i in 1:29)
 {
   varr<-names(sumnewdata)[i+3]  
   goodname<-paste('Loess',varr,sep='')  
-  assign(goodname,loess(get(varr)~longitude*latitude, data=sumnewdata,degree=0, span=0.1, normalize=F,control=loess.control(surface = "direct")))
+  assign(goodname,loess(get(varr)~longitude*latitude, data=sumnewdata,degree=1, span=0.8, normalize=F,control=loess.control(surface = "direct")))
 }
 
 ##Prediction for production well
@@ -246,10 +282,7 @@ aq.border<-cbind(Newabc$Longitude[aq.ch],Newabc$Latitude[aq.ch])
 
 aq.bbox<-sbox(as.points(Newabc$Longitude,Newabc$Latitude))
 aq.grid<-gridpts(aq.bbox,npts=45000)
-aq.grx<-unique(aq.grid[,1])
-aq.gry<-unique(aq.grid[,2])
 inside<-inout(aq.grid,aq.border,bound=TRUE)
-distmat<-rdist(aq.grid,cbind(Newabc$Longitude,Newabc$Latitude))
 
 aq.Grid<-aq.grid[inside,]
 
@@ -257,19 +290,20 @@ cord3.dec = SpatialPoints(aq.Grid, proj4string=CRS("+proj=longlat"))
 cord3.UTM <- spTransform(cord3.dec, CRS("+proj=utm +north +zone=14"))
 Aq.Grid<-coordinates(cord3.UTM)
 
-SS3<-predict(LoessS3,Aq.Grid)
-M<-cbind(aq.Grid,SS3)
+TGriTypeParameter<-predict(LoessGriTypeParameter,Aq.Grid)
+M<-cbind(aq.Grid,TGriTypeParameter)
 M<-as.data.frame(M)
-names(M)<-c('longitude','latitude','S3')
+names(M)<-c('longitude','latitude','GriTypeParameter')
 M[,1:2]<-coordinates(cord3.dec)
 jet.colors <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan", "#7FFF7F", "yellow", "#FF7F00", "red", "#7F0000"))
 
 
-#map<-get_map(location=c(lon = -98, lat = 29.6), zoom = 7,maptype='toner')
-#p<-ggmap(map, extent='normal')
-#p+geom_tile(data = M, aes(x = longitude, y = latitude, z=TToc, 
-#                          fill = TToc),  alpha = 0.5)+scale_fill_gradientn(colours = jet.colors(7))+
-#  stat_contour(data = M,aes( x = longitude, y = latitude, z = TToc ))+theme_bw()
+map<-get_map(location=c(left = -100.3, bottom = 27.7, right = -96.1, top = 31.2), zoom = 7, maptype='toner') 
+p<-ggmap(map, extent='normal')
+p+geom_tile(data = M, aes(x = longitude, y = latitude, z=GriTypeParameter, 
+                          fill = GriTypeParameter),  alpha = 0.8)+scale_fill_gradientn(colours = jet.colors(7))+
+  stat_contour(data = M,aes( x = longitude, y = latitude, z = GriTypeParameter ))
+
 
 
 all_states <- map_data("county")
@@ -277,10 +311,14 @@ all_states <- map_data("county")
 county <- subset(all_states, (long>=(-101))&(long<=(-95))&(lat>27.6)&(lat<31.5) )
 p <- ggplot() + geom_polygon( data=county, aes(x=long, y=lat, group = subregion),colour="grey", fill="white",size=1 )+
   geom_tile(data = M, aes(x = longitude, y = latitude, 
-                         fill = SS3),  alpha = 0.8)+scale_fill_gradientn(colours = jet.colors(7))+
-  stat_contour(data = M,aes( x = longitude, y = latitude, z = SS3))
+                         fill = GriTypeParameter),  alpha = 0.8)+scale_fill_gradientn(colours = jet.colors(7))+
+  stat_contour(data = M,aes( x = longitude, y = latitude, z = GriTypeParameter))
 
 
+p <- ggplot() + 
+  geom_tile(data = M, aes(x = longitude, y = latitude, 
+                          fill = GriTypeParameter),  alpha = 0.8)+scale_fill_gradientn(colours = jet.colors(7))
+  
 
 ######Cross validation for Kriging and LOESS
 
@@ -374,7 +412,7 @@ newabcY<-dplyr::arrange(newabcY,Uwi)
 
 write.csv(newabcY,file='Data preparing for Machine learning.csv')
 
-#ggscatmat(newabcY,columns=c(28:34,35))
+ggscatmat(newabcY,columns=c(15:16,35))
 
 ##boosting
 
@@ -389,7 +427,7 @@ runboostRegCV<- function(dat, no.tree, k)
     test  <- dat[folds$subsets[folds$which==i],]
     train <- dplyr::setdiff(dat, test)
     #model <- gbm(Target~., data=train[,5:35], n.trees=no.tree, shrinkage=0.01,distribution='gaussian',interaction.depth=4)  
-    model <- gbm(Target~., data=train[,3:35], n.trees=no.tree, shrinkage=0.01,distribution='gaussian',interaction.depth=6) 
+    model <- gbm(Target~., data=train[,3:35], n.trees=no.tree, shrinkage=0.01,distribution='gaussian',interaction.depth=10) 
     #####################################################################################################
     
     # Predict test dataset and calculate mse
@@ -403,8 +441,22 @@ runboostRegCV<- function(dat, no.tree, k)
   return(list(sol, pred))
 }
 #@@ 5-fold CV
-boost5 <- runboostRegCV(dat=newabcY,  no.tree=8000, k=5)
+boost5 <- runboostRegCV(dat=newabcY,  no.tree=5000, k=5)
 predboost5<-boost5[[2]]
+
+ggplot(predboost5,aes(x=Target,y=Pred))+geom_point(color='blue',size=0.2)+
+  geom_abline(intercept = 0,size=1,colour='red')+xlab('True')+ylab('Prediction')+
+  ggtitle('Oil production: Prediction vs True')+
+  ylim(0, 70)+ylim(0, 70)+
+theme(axis.title.x = element_text(size = 30, colour = 'black',vjust=-0.5),
+      axis.title.y = element_text(size = 30, colour = 'black',vjust=1,hjust=0.55),
+      axis.text  = element_text(size = 20, colour = 'black'),
+     plot.title=element_text(size = 40, colour = 'black',vjust=2),
+     panel.background = element_rect(fill = "aliceblue"))
+
+
+plot(predboost5[,2],predboost5[,3],xlab='true',ylab='predict')
+abline(a=0,b=1)
 
 
 mmm<-rep(0,25)
@@ -423,28 +475,7 @@ fitControl <- trainControl(## 5-fold CV
   number = 5,
   savePredictions=TRUE)
 
-gbmGrid <- expand.grid(interaction.depth=c(6),n.trees = c(8000), shrinkage=c(0.01), n.minobsinnode=10)
-
-
-M<-matrix(0,34,100)
-mmm<-rep(0,34)
-for (t in 1:100)
-{
-for (j in 2:34)
-{
-  
-  gbmFit <- train(Target ~ ., data = newabcY[,setdiff(3:35,j)],
-                  method = "gbm",
-                  trControl = fitControl,
-                  tuneGrid=gbmGrid,
-                  verbose = FALSE)
-  print(j)
-  print(gbmFit$results)
-  mmm[j]<-as.numeric(gbmFit$results[5])
-}
-M[,t]<-mmm
-}
-
+gbmGrid <- expand.grid(interaction.depth=c(32),n.trees = c(500,800,1000,1200,1500), shrinkage=c(0.01), n.minobsinnode=10)
 
 
 gbmFit <- train(Target ~ ., data = newabcY[,3:35],
@@ -458,7 +489,7 @@ mmm<-rep(0,25)
 for (i in 1:25)
 {
   
-  gbmGrid <- expand.grid(interaction.depth=c(6),n.trees = c(8000), shrinkage=0.01, n.minobsinnode=10)
+  gbmGrid <- expand.grid(interaction.depth=c(32),n.trees = c(1000), shrinkage=0.01, n.minobsinnode=10)
   print(i)
   M<- train(Target ~ ., data = newabcY[,3:35],
             method = "gbm",
@@ -471,7 +502,8 @@ for (i in 1:25)
 
 
 
-#RMSE 5.241(0.053)
+#RMSE 5.233(0.051)       10,5000,0.01
+#RMSE 5.180(0.038)       32,1000,0.01
 
 
 
@@ -511,6 +543,20 @@ set.seed(666)
 rf <- runRFRegCV(dat=newabcY,  m=12, no.tree=1000, k=5)
 predRF<- rf[[2]] 
 
+
+
+ggplot(predRF,aes(x=Target,y=Pred))+geom_point(color='blue',size=0.2)+
+  geom_abline(intercept = 0,size=1,colour='red')+xlab('True')+ylab('Prediction')+
+  ggtitle('Oil production: Prediction vs True')+
+  ylim(0, 70)+ylim(0, 70)+
+  theme(axis.title.x = element_text(size = 30, colour = 'black',vjust=-0.5),
+        axis.title.y = element_text(size = 30, colour = 'black',vjust=1,hjust=0.55),
+        axis.text  = element_text(size = 20, colour = 'black'),
+        plot.title=element_text(size = 40, colour = 'black',vjust=2),
+        panel.background = element_rect(fill = "aliceblue"))
+
+
+
 mmm<-rep(0,25)
 for (i in 1:25)
 {
@@ -521,8 +567,7 @@ for (i in 1:25)
 }
 
 
-#MSE 26.70(0.412)
-#RMSE 5.168(0.040)
+#RMSE 5.157(0.046)
 
 
 fitControl <- trainControl(## 5-fold CV
@@ -533,18 +578,18 @@ fitControl <- trainControl(## 5-fold CV
 rfGrid <- expand.grid(mtry=c(12))
 
 
-rfFit <- train(Target ~ ., data = newabcY[,c(3,4,5,6,7,9:12,14:16,18,19,20,22:34,35)],
+rfFit <- train(Target ~ ., data = newabcY[,3:35],
                  method = "rf",
                  trControl = fitControl,
                  tuneGrid=rfGrid,
-                 ntree=100,
+                 ntree=1000,
                  verbose = FALSE)
 
 
-
-mmm<-rep(0,100)
-for (i in 1:100)
-{
+mmm<-matrix(0,25,3)
+mmm<-as.data.frame(mmm)
+for (i in 1:25)
+{ 
   print(i)
   L<- train(Target ~ ., data = newabcY[,3:35],
             method = "rf",
@@ -553,17 +598,19 @@ for (i in 1:100)
             ntree=1000,
             verbose = FALSE)
   print(L$results)
-  mmm[i]<-L$results[2]
+  mmm[i,1]<-L$results[2]
+
 }
 
 
-#MSE 26.59(0.395)
-#RMSE 5.157(0.038)
+#RMSE 5.157(0.046)
+
+
 
 #####Direct Kriging##################
 
 
-runKriCV <- function(dat, k,max){
+runKriCV <- function(dat, k){
   
   folds <- cvFolds(nrow(dat), K=k)
   mse <- NULL;  pred <- NULL; sol <- NULL;
@@ -584,7 +631,7 @@ dat$Latitude <- coordinates(cord1.UTM)[,2]
     
     # Predict test dataset and calculate mse
     
-    lookb=variog(coords=train[,c(4,3)],data=train[,35],trend='2nd')
+    lookb=variog(coords=train[,c(4,3)],data=train[,35],trend='cte')
 
     #lookbc=variog(coords=train[,c(4,3)],data=train[,35],trend='2nd',bin.cloud=TRUE,estimator.type = "modulus")
     #par(mfrow=c(2,2))
@@ -596,7 +643,7 @@ dat$Latitude <- coordinates(cord1.UTM)[,2]
     {covpar$cov.pars[2]=0.01}
     #if(covpar$kappa>2)
     #{covpar$kappa=2}
-    model <- Krig(x=train[,c(4,3)],Y=train[,35],theta=covpar$cov.pars[2],m=3)#,smoothness=covpar$kappa,Covariance="Matern") 
+    model <- Krig(x=train[,c(4,3)],Y=train[,35],theta=covpar$cov.pars[2],m=1)#,smoothness=covpar$kappa,Covariance="Matern") 
     test.pred <- cbind(test[,c(2,35)], Pred=predict(model,as.matrix(test[,c(4,3)])), test[,c(36,37)]) 
     
      # Uwi, Target, Pred, Latitude, Longitude
@@ -656,27 +703,13 @@ plot(lookb, main="binned variogram")
 covpar<-variofit(lookb)
 if(covpar$cov.pars[2]==0) 
 {covpar$cov.pars[2]=0.01}
-model <- Krig(x=newabcY[,c(4,3)],Y=newabcY[,35],theta=covpar$cov.pars[2],m=3)
+model <- Krig(x=newabcY[,c(4,3)],Y=newabcY[,35],theta=covpar$cov.pars[2],m=1)
 set.panel()
 surface(model, type="C",xlab='X',ylab='Y',main='Kriging results for Toc') # look at the surface 
 cbind(newabcY$Target,model$fitted.values)
 rmse(newabcY$Target,model$fitted.values)
 
 
-
-
-
-
-
-
-hahaha<-rep(0,10)
-
-set.seed(897)
-for (i in 6:10)
-{
-Kri <- runKriCV(dat=newabcY, k=5,max=i*0.1)
-hahaha[i]<-Kri[[1]][2]
-}
 
 
 predKri<- Kri[[2]] 
@@ -690,24 +723,17 @@ for (i in 1:25)
   mmm[i]<-M[[1]][3]
 }
 
-#RMSE  5.85(0.37)
+
+linear trend
+#RMSE 5.278(0.039)
+
+no trend
+#RMSE 5.288(0.037)
 
 
 
 ###support vector regression########
 
-fitControl <- trainControl(## 5-fold CV
-  method = "cv",
-  number = 5)
-
-newGrid <- expand.grid(C=c(10,20,5,1),sigma=0.2)
-
-
-
-newFit <- train(Target ~ ., data = newabcY[,3:35],
-                method = "svmRadial",
-                #tuneGrid=newGrid,
-                trControl = fitControl)
 
 
 runRegSVMCV <- function(dat, k, gamma, cost,nu){
@@ -734,7 +760,7 @@ runRegSVMCV <- function(dat, k, gamma, cost,nu){
   return(list(sol, pred))
 }
 set.seed(897)
-Svm <- runRegSVMCV(dat=newabcY, k=5, cost=4, gamma=0.7,nu=0.4)
+Svm <- runRegSVMCV(dat=newabcY, k=5, cost=20, gamma=0.2,nu=0.3)
 predsvm<- Svm[[2]] 
 
 
@@ -743,36 +769,53 @@ mmm<-rep(0,50)
 
 for (i in 1:50)
 {
-  Svm <- runRegSVMCV(dat=newabcY, k=5, cost=4, gamma=0.7,nu=0.4) 
+  Svm <- runRegSVMCV(dat=newabcY, k=5, cost=20, gamma=0.2,nu=0.3) 
   print(i)
   print(Svm[[1]])
   mmm[i]<-Svm[[1]][3]
 }
 
 
-#MSE 30.30(0.449)
-#RMSE 5.505(0.041)
 
-A<-tune(svm, Target~., data=newabcY[,3:35], ranges = list(gamma =0.7, cost =4, nu=0.5,            
+A<-tune(svm, Target~., data=newabcY[,3:35], ranges = list(gamma =0.2, cost =20, nu=c(0.3),            
             type='nu-regression'),tunecontrol = tune.control(sampling = "cross",cross=5))
 #print(i)
 print(A$performance)
 
+for (k in 2:34)
+{
+  print(k)
+  for (i in 1:25)
+  {
+    
+    A<-tune(svm, Target~., data=newabcY[,setdiff(3:35,k)], ranges = list(gamma =0.2, cost =20, nu=c(0.3),            
+                           type='nu-regression'),tunecontrol = tune.control(sampling = "cross",cross=5))
+    
+    print(A$best.performance)
+    M[k,i]<-as.vector(A$best.performance)
+    
+}
+}
 
 
 
+#RMSE 
+#5.513(0.034)
 
 
-########Neural network#################################
+########Neural network#########################
+########(failure)
+
 
 runRegneuralCV <- function(dat, k, hidden, epochs){
   
   folds <- cvFolds(nrow(dat), K=k)
   mse <- NULL;  pred <- NULL; sol <- NULL;
+  localH2O <- h2o.init()
   
   for(i in 1:k){  
     # Split data into train/test set
-    localH2O <- h2o.init()
+    
     test  <- dat[folds$subsets[folds$which==i],]
     true  <- test[,35]
     train <- dplyr::setdiff(dat, test)
@@ -780,15 +823,17 @@ runRegneuralCV <- function(dat, k, hidden, epochs){
     test  <- as.h2o(test[,3:34],conn=localH2O)
     model <- h2o.deeplearning(x=1:32, y=33, training_frame=train,activation = "Tanh",# or 'Tanh'
                               #input_dropout_ratio = 0.2, # % of inputs dropout
-                              #hidden_dropout_ratios = c(0.5,0.5,0.5,0.5,0.5), # % for nodes dropout
+                              #hidden_dropout_ratios = c(0.4), # % for nodes dropout
                               #balance_classes = TRUE, 
-                              hidden = hidden, # three layers of 50 nodes
+                              hidden = hidden,
+                              reproducible=T,
                               epochs = epochs) # max. no. of epochs)  
     
     #####################################################################################################
     
     # Predict test dataset and calculate mse
     test.pred <- cbind(true, Pred=as.matrix(predict(model,newdata=test)))  # Uwi, Target, Pred, Latitude, Longitude
+
     mse <- c(mse, sum((test.pred[,1]-test.pred[,2])^2)/nrow(test.pred))
     pred <- rbind(pred, test.pred)  # save prediction results for fold i
   }
@@ -798,15 +843,18 @@ runRegneuralCV <- function(dat, k, hidden, epochs){
 }
 
 set.seed(897)
-Neural <- runRegneuralCV(dat=newabcY, k=5, hidden=35, epochs=20)
+Neural <- runRegneuralCV(dat=newabcY, k=5, hidden=50, epochs=5000)
 predneural<- Neural[[2]] 
+predneural<-as.data.frame(predneural)
+names(predneural)<-c('Target','Pred')
+
 
 
 mmm<-rep(0,25)
 mmmm<-rep(0,25)
 for (i in 1:25)
 {
-  Neural <- runRegneuralCV(dat=newabcY, k=5, hidden=35, epochs=20)
+  Neural <- runRegneuralCV(dat=newabcY, k=5, hidden=50, epochs=500)
   print(i)
   print(Neural[[1]])
   mmm[i]<-Neural[[1]][2]
@@ -814,20 +862,9 @@ for (i in 1:25)
 }
 
 
-#MSE 46.51(1.292)
-#RMSE 6.819(0.095)
+#MSE 43.69(0.51)
+#RMSE 6.609(0.038)
 
-
-model <- 
-  h2o.deeplearning(x = 2:785,  # column numbers for predictors
-                   y = 1,   # column number for label
-                   data = train_h2o, # data in H2O format
-                   activation = "TanhWithDropout", # or 'Tanh'
-                   input_dropout_ratio = 0.2, # % of inputs dropout
-                   hidden_dropout_ratios = c(0.5,0.5,0.5), # % for nodes dropout
-                   balance_classes = TRUE, 
-                   hidden = c(50,50,50), # three layers of 50 nodes
-                   epochs = 100) # max. no. of epochs
 
 
 #-------------------------------------------------------------------------------------------------------------------------
@@ -863,12 +900,13 @@ qRecCurv <- function(x) {
 # Prediction of  models (30 vars)
 pred.boost<-dplyr::select(predboost5,Uwi, Target,boost=Pred)
 pred.RF<-dplyr::select(predRF, Uwi, RF=Pred)
-pred.Kri<-dplyr::select(predKri,Uwi,Kri=Pred)
-
+pred.Svm<-dplyr::select(predsvm,Uwi,Svm=Pred)
+pred.neural<-dplyr::select(predneural,neural=Pred,Target)
 
 
 jo <- dplyr::left_join(pred.boost, pred.RF, by="Uwi")
-jo <- dplyr::left_join(jo,pred.Kri,by='Uwi')
+jo <- dplyr::left_join(jo,pred.Svm,by='Uwi')
+jo <- dplyr::left_join(jo,pred.neural,by='Target')
 jo <- jo[,-1]  # rm Uwi
 
 q.rec <- qRecCurv(jo) * 100
@@ -880,18 +918,18 @@ q.rec <- q.rec[index, ]
 q.rec1 <- q.rec %>% dplyr::select(True) %>% dplyr::mutate(RecRate=True, Method="Baseline")
 q.rec2 <- q.rec %>% dplyr::select(True, X2) %>% dplyr::rename(RecRate=X2) %>% dplyr::mutate(Method="boost")
 q.rec3 <- q.rec %>% dplyr::select(True, X3) %>% dplyr::rename(RecRate=X3) %>% dplyr::mutate(Method="RandomForest")
-q.rec4 <- q.rec %>% dplyr::select(True, X4) %>% dplyr::rename(RecRate=X4) %>% dplyr::mutate(Method="Kriging")
-
+q.rec4 <- q.rec %>% dplyr::select(True, X4) %>% dplyr::rename(RecRate=X4) %>% dplyr::mutate(Method="SVM")
+q.rec5 <- q.rec %>% dplyr::select(True, X5) %>% dplyr::rename(RecRate=X5) %>% dplyr::mutate(Method="Neural")
 
 q.rec <- dplyr::union(q.rec1, q.rec2)
 q.rec <- dplyr::union(q.rec, q.rec3)
 q.rec <- dplyr::union(q.rec, q.rec4)
-
+q.rec <- dplyr::union(q.rec, q.rec5)
 
 ggplot(q.rec, aes(x=True, y=RecRate, colour=Method, group=Method)) + 
   geom_line(lwd=1.2) +
-  scale_color_manual(values=c("#fe506e", "black", "#228b22","#0099cc")) +
-  xlab("Top Quantile Percentage") + ylab("Recover Rate") + 
+  scale_color_manual(values=c("#fe506e", "black", "#228b22","#0099cc",'brown')) +
+  xlab("Top Quantile Percentage") + ylab("Recovery Rate") + 
   theme(#legend.position="none",
     axis.title.x = element_text(size=24),
     axis.title.y = element_text(size=24),
@@ -948,7 +986,7 @@ runboostRegCV<- function(dat, no.tree, k)
 }
 #@@ 5-fold CV
 set.seed(666)
-boost5 <- runboostRegCV(dat=newbbcY,  no.tree=5000, k=5)
+boost5 <- runboostRegCV(dat=newbbcY,  no.tree=500, k=5)
 
 
 predboost5<-boost5[[2]]
@@ -969,6 +1007,20 @@ for (i in 1:25)
 #RMSE 5.273(0.040)
 
 
+
+fitControl <- trainControl(## 5-fold CV
+  method = "cv",
+  number = 5,
+  savePredictions=TRUE)
+
+gbmGrid <- expand.grid(interaction.depth=c(5,12,30),n.trees = c(5000), shrinkage=c(0.01), n.minobsinnode=10)
+
+
+gbmFit <- train(Target ~ ., data = newbbcY[,2:32],
+                method = "gbm",
+                trControl = fitControl,
+                tuneGrid=gbmGrid,
+                verbose = FALSE)
 
 
 
