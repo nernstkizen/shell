@@ -37,4 +37,4 @@ library(GGally)
 ### Project folder path
 #---------------------------------------------------------------------------------------------------------------------
 #repo_path = "C:/Apps/projects/xxx"
-repo_path = "Z:/project"
+repo_path = "Z:/Eagle ford project"

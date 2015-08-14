@@ -1,4 +1,4 @@
-setwd("Z:/project/code")
+setwd("Z:/Eagle ford project/code")
 source('header.R')
 source("loadData.R")
 setwd(file.path(repo_path, "/data"))
@@ -387,18 +387,6 @@ p <- ggplot() +
 #}
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 #================================================================================================================================
 # Tree, RandomForest and Boosting Algorithm ###(my data)
 #================================================================================================================================
@@ -427,7 +415,7 @@ runboostRegCV<- function(dat, no.tree, k)
     test  <- dat[folds$subsets[folds$which==i],]
     train <- dplyr::setdiff(dat, test)
     #model <- gbm(Target~., data=train[,5:35], n.trees=no.tree, shrinkage=0.01,distribution='gaussian',interaction.depth=4)  
-    model <- gbm(Target~., data=train[,3:35], n.trees=no.tree, shrinkage=0.01,distribution='gaussian',interaction.depth=10) 
+    model <- gbm(Target~., data=train[,3:35], n.trees=no.tree,shrinkage=0.01,distribution='gaussian',interaction.depth=10) 
     #####################################################################################################
     
     # Predict test dataset and calculate mse
@@ -444,10 +432,13 @@ runboostRegCV<- function(dat, no.tree, k)
 boost5 <- runboostRegCV(dat=newabcY,  no.tree=5000, k=5)
 predboost5<-boost5[[2]]
 
+
+
+
 ggplot(predboost5,aes(x=Target,y=Pred))+geom_point(color='blue',size=0.2)+
   geom_abline(intercept = 0,size=1,colour='red')+xlab('True')+ylab('Prediction')+
   ggtitle('Oil production: Prediction vs True')+
-  ylim(0, 70)+ylim(0, 70)+
+  xlim(0, 70)+ylim(0, 70)+
 theme(axis.title.x = element_text(size = 30, colour = 'black',vjust=-0.5),
       axis.title.y = element_text(size = 30, colour = 'black',vjust=1,hjust=0.55),
       axis.text  = element_text(size = 20, colour = 'black'),
@@ -475,7 +466,7 @@ fitControl <- trainControl(## 5-fold CV
   number = 5,
   savePredictions=TRUE)
 
-gbmGrid <- expand.grid(interaction.depth=c(32),n.trees = c(500,800,1000,1200,1500), shrinkage=c(0.01), n.minobsinnode=10)
+gbmGrid <- expand.grid(interaction.depth=c(10),n.trees = c(1000,5000,20000), shrinkage=c(0.01), n.minobsinnode=10)
 
 
 gbmFit <- train(Target ~ ., data = newabcY[,3:35],
@@ -503,7 +494,6 @@ for (i in 1:25)
 
 
 #RMSE 5.233(0.051)       10,5000,0.01
-#RMSE 5.180(0.038)       32,1000,0.01
 
 
 
@@ -548,7 +538,7 @@ predRF<- rf[[2]]
 ggplot(predRF,aes(x=Target,y=Pred))+geom_point(color='blue',size=0.2)+
   geom_abline(intercept = 0,size=1,colour='red')+xlab('True')+ylab('Prediction')+
   ggtitle('Oil production: Prediction vs True')+
-  ylim(0, 70)+ylim(0, 70)+
+  xlim(0, 70)+ylim(0, 70)+
   theme(axis.title.x = element_text(size = 30, colour = 'black',vjust=-0.5),
         axis.title.y = element_text(size = 30, colour = 'black',vjust=1,hjust=0.55),
         axis.text  = element_text(size = 20, colour = 'black'),
@@ -777,7 +767,7 @@ for (i in 1:50)
 
 
 
-A<-tune(svm, Target~., data=newabcY[,3:35], ranges = list(gamma =0.2, cost =20, nu=c(0.3),            
+A<-tune(svm, Target~., data=newabcY[,3:35], ranges = list(gamma =c(0.3), cost =10, nu=0.4,            
             type='nu-regression'),tunecontrol = tune.control(sampling = "cross",cross=5))
 #print(i)
 print(A$performance)
@@ -849,7 +839,6 @@ predneural<-as.data.frame(predneural)
 names(predneural)<-c('Target','Pred')
 
 
-
 mmm<-rep(0,25)
 mmmm<-rep(0,25)
 for (i in 1:25)
@@ -865,6 +854,97 @@ for (i in 1:25)
 #MSE 43.69(0.51)
 #RMSE 6.609(0.038)
 
+
+
+
+
+
+
+
+
+
+####CV.SuperLearner
+
+fitSL <- CV.SuperLearner( Y = newabcY[,35] ,
+                          X = newabcY[,3:34] ,
+                          SL.library = c("SL.SVM",'SL.randomforest','SL.boosting'), 
+                          #SL.library = c('SL.boosting'),
+                          family=gaussian(),
+                          method = "method.NNLS" ,
+                          verbose = TRUE,
+                          V=5)
+
+sqrt(mean((newabcY[,35]-fitSL$library.predict[,1])^2))
+sqrt(mean((newabcY[,35]-fitSL$library.predict[,2])^2))
+sqrt(mean((newabcY[,35]-fitSL$library.predict[,3])^2))
+sqrt(mean((newabcY[,35]-fitSL$SL.predict)^2))
+
+
+Super<-data.frame(Target=newabcY[,35],Pred=fitSL$SL.predict)
+ggplot(Super,aes(x=Target,y=Pred))+geom_point(color='blue',size=0.2)+
+  geom_abline(intercept = 0,size=1,colour='red')+xlab('True')+ylab('Prediction')+
+  ggtitle('Oil production: Prediction vs True')+
+  xlim(0, 70)+ylim(0, 70)+
+  theme(axis.title.x = element_text(size = 30, colour = 'black',vjust=-0.5),
+        axis.title.y = element_text(size = 30, colour = 'black',vjust=1,hjust=0.55),
+        axis.text  = element_text(size = 20, colour = 'black'),
+        plot.title=element_text(size = 40, colour = 'black',vjust=2),
+        panel.background = element_rect(fill = "aliceblue"))
+
+
+
+
+
+SL.randomforest<-function (Y, X, newX, family, mtry = ifelse(family$family == 
+                                                               "gaussian", floor(sqrt(ncol(X))), max(floor(ncol(X)/3), 1)), 
+                           ntree = 1000, nodesize = ifelse(family$family == "gaussian", 
+                                                           5, 1), ...) 
+{
+  if (family$family == "gaussian") {
+    fit.rf <- randomForest(Y ~ ., data = X, ntree = 1000, 
+                           xtest = newX, keep.forest = TRUE, mtry = 12, nodesize = nodesize)
+    pred <- fit.rf$test$predicted
+    fit <- list(object = fit.rf)
+  }
+  out <- list(pred = pred, fit = fit)
+  class(out$fit) <- c("SL.randomForest")
+  return(out)
+}
+
+
+SL.boosting<-function (Y, X, newX, family, obsWeights, gbm.trees = 5000, 
+                       interaction.depth = 10, ...) 
+{
+  
+  gbm.model <- as.formula(paste("Y~", paste(colnames(X), collapse = "+")))
+  if (family$family == "gaussian") {
+    fit.gbm <- gbm(formula = gbm.model, data = X, distribution = "gaussian", 
+                   n.trees = gbm.trees, interaction.depth = interaction.depth, 
+                   shrinkage=0.01,
+                   verbose = FALSE)
+  }
+  
+  pred <- predict(fit.gbm, newdata = newX, gbm.trees)
+  fit <- list(object = fit.gbm, n.trees = gbm.trees)
+  out <- list(pred = pred, fit = fit)
+  class(out$fit) <- c("SL.gbm")
+  return(out)
+}
+
+
+SL.SVM<-function (Y, X, newX, family, type.reg = "nu-regression", type.class = "nu-classification", 
+                  nu = 0.5, ...) 
+{
+  fit.svm <- svm(Y~., data=cbind(X,Y), nu = 0.3, type = "nu-regression", 
+                 fitted = FALSE, cost=20, gamma=0.2)
+  pred <- predict(fit.svm, newdata = newX)
+  fit <- list(object = fit.svm)
+  
+  
+  out <- list(pred = pred, fit = fit)
+  class(out$fit) <- c("SL.svm")
+  return(out)
+}
 
 
 #-------------------------------------------------------------------------------------------------------------------------
